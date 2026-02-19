@@ -15,6 +15,17 @@
     </ion-toolbar>
   </ion-header>
 
+  <div *ngIf="projects.length == 0">
+    <h2>No Projects! Add a new project.</h2>
+  </div>
 
+<ion-list>
+  <ion-item *ngFor="let project of projects" button (click)="navigateToDetails(project._id)">
+    <ion-label>
+      <h2>{{ project.name }}</h2>
+    </ion-label>
+    <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+  </ion-item>
+</ion-list>
 
 </ion-content>

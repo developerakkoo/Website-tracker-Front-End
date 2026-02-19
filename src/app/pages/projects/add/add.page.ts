@@ -27,6 +27,9 @@ export class AddPage implements OnInit {
   ngOnInit() {
   }
 
+  dismiss(){
+    this.modalController.dismiss();
+  }
   async onSubmit(){
     if(this.form.valid){
       console.log(this.form.value);

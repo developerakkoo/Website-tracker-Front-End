@@ -14,16 +14,22 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class ProjectsPage implements OnInit {
 
+  projects:any[] = [];
   constructor(private router:Router,
               private projectsService: Projects,
               private modalController: ModalController
   ) { }
 
   ngOnInit() {
+    this.loadProjects();
   }
 
-  ionViewDidLoad(){
+  ionViewWillEnter(){
     this.loadProjects();
+  }
+
+  navigateToDetails(projectId: string) {
+    this.router.navigate(['/projects/details', projectId]);
   }
 async presentNewProjectCreateModal() {
   const modal = await this.modalController.create({
@@ -45,10 +51,12 @@ async presentNewProjectCreateModal() {
     .subscribe({
       next:async (value:any) =>{
         console.log(value);
+        this.projects = value;
         
       },
       error:async (error:HttpErrorResponse) =>{
         console.log(error);
+        this.projects = [];
         
       }
     })

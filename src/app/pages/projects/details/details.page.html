@@ -1,0 +1,85 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/projects"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Project Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="project" class="ion-padding">
+    
+    <!-- Project Info Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ project.name }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item lines="none">
+          <ion-label>
+            <h2>Tracking ID</h2>
+            <p class="api-key">{{ project.apiKey }}</p>
+          </ion-label>
+          <ion-button slot="end" fill="clear" size="small" (click)="copyToClipboard(project.apiKey, 'Tracking ID')">
+            <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Installation Snippet Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Installation Snippet</ion-card-title>
+        <ion-card-subtitle>Add this code to your website's HTML</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="snippet-container">
+          <pre><code>{{ installationSnippet }}</code></pre>
+        </div>
+        <ion-button expand="block" (click)="copyToClipboard(installationSnippet, 'Installation snippet')">
+          <ion-icon slot="start" name="copy-outline"></ion-icon>
+          Copy Installation Code
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Installation Status Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Installation Status</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-button expand="block" (click)="checkInstallationStatus()">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          Check Installation Status
+        </ion-button>
+
+        <div *ngIf="status" class="status-container">
+          <ion-item lines="none">
+            <ion-label>
+              <h2>Status</h2>
+            </ion-label>
+            <ion-badge [color]="getStatusBadge().color">{{ getStatusBadge().text }}</ion-badge>
+          </ion-item>
+
+          <ion-item lines="none" *ngIf="status.lastSeen">
+            <ion-label>
+              <h2>Last Seen</h2>
+              <p>{{ getLastSeenText() }}</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-item lines="none" *ngIf="status.lastUrl">
+            <ion-label>
+              <h2>Last URL</h2>
+              <p class="url-text">{{ status.lastUrl }}</p>
+            </ion-label>
+          </ion-item>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
