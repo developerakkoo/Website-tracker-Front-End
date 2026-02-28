@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { Projects, ProjectStatus } from 'src/app/services/projects';
+import { SessionService, ProjectSession } from 'src/app/services/session';
 import { HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 
@@ -17,10 +18,14 @@ export class DetailsPage implements OnInit {
   status: ProjectStatus | null = null;
   trackerDomain: string = '';
   installationSnippet: string = '';
+  sessions: ProjectSession[] = [];
+  sessionsLoading = false;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private projectsService: Projects,
+    private sessionService: SessionService,
     private toastController: ToastController,
     private loadingController: LoadingController
   ) {}
@@ -45,6 +50,7 @@ export class DetailsPage implements OnInit {
       next: async (project: any) => {
         this.project = project;
         this.generateInstallationSnippet();
+        this.loadSessions();
         await loading.dismiss();
       },
       error: async (error: HttpErrorResponse) => {
@@ -150,6 +156,39 @@ export class DetailsPage implements OnInit {
     } else {
       return { color: 'success', text: 'Connected' };
     }
+  }
+
+  loadSessions() {
+    if (!this.projectId) return;
+    this.sessionsLoading = true;
+    this.sessionService.getProjectSessions(this.projectId).subscribe({
+      next: (sessions) => {
+        this.sessions = sessions;
+        this.sessionsLoading = false;
+      },
+      error: () => {
+        this.sessionsLoading = false;
+      }
+    });
+  }
+
+  openReplay(sessionId: string) {
+    this.router.navigate(['/replay', sessionId]);
+  }
+
+  formatSessionDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleString();
+  }
+
+  formatDeviceType(deviceType: string): string {
+    if (!deviceType) return '';
+    const d = deviceType.toLowerCase();
+    if (d === 'android') return 'Android';
+    if (d === 'ios') return 'iPhone/iPad';
+    if (d === 'tablet') return 'Tablet';
+    return 'Desktop';
   }
 
   getLastSeenText(): string {

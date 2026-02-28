@@ -81,5 +81,34 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- Sessions & Replay Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Sessions</ion-card-title>
+        <ion-card-subtitle>Recorded sessions with replay</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="sessionsLoading" class="ion-padding">
+          <ion-spinner></ion-spinner>
+          <p>Loading sessions...</p>
+        </div>
+        <div *ngIf="!sessionsLoading && sessions.length === 0">
+          <p>No sessions yet. Install the tracker on your site and visit it to record sessions.</p>
+        </div>
+        <ion-list *ngIf="!sessionsLoading && sessions.length > 0">
+          <ion-item *ngFor="let s of sessions" [button]="true" (click)="openReplay(s.sessionId)">
+            <ion-label>
+              <h2>{{ s.url || 'Session' }}</h2>
+              <p>{{ formatSessionDate(s.startedAt) }} · {{ s.eventCount }} events <span *ngIf="s.deviceType" class="device-badge">{{ formatDeviceType(s.deviceType) }}</span></p>
+            </ion-label>
+            <ion-button slot="end" fill="clear" size="small">
+              <ion-icon name="play-circle-outline"></ion-icon>
+              Replay
+            </ion-button>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
   </div>
 </ion-content>

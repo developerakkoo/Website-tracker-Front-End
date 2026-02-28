@@ -1,0 +1,64 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/projects"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Session Replay</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div *ngIf="loading" class="ion-padding">
+    <ion-spinner></ion-spinner>
+    <p>Loading session...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="ion-padding">
+    <ion-text color="danger">{{ error }}</ion-text>
+  </div>
+
+  <div *ngIf="session && !loading && !error" class="replay-container">
+    <div class="controls ion-padding">
+      <ion-button (click)="play()" [disabled]="isPlaying || events.length === 0">
+        <ion-icon slot="start" name="play"></ion-icon>
+        Play
+      </ion-button>
+      <ion-button (click)="pause()" [disabled]="!isPlaying">
+        <ion-icon slot="start" name="pause"></ion-icon>
+        Pause
+      </ion-button>
+      <ion-button (click)="restart()" [disabled]="events.length === 0">
+        <ion-icon slot="start" name="refresh"></ion-icon>
+        Restart
+      </ion-button>
+      <ion-button [color]="speed === 1 ? 'primary' : 'medium'" (click)="setSpeed(1)">1x</ion-button>
+      <ion-button [color]="speed === 2 ? 'primary' : 'medium'" (click)="setSpeed(2)">2x</ion-button>
+      <ion-button [color]="speed === 4 ? 'primary' : 'medium'" (click)="setSpeed(4)">4x</ion-button>
+    </div>
+    <div *ngIf="!hasSnapshot" class="ion-padding no-snapshot-message">
+      <ion-text color="medium">No snapshot recorded for this session. Replay controls can still play back events (e.g. scroll).</ion-text>
+    </div>
+    <div *ngIf="deviceLabel" class="device-label ion-padding-horizontal">
+      <ion-badge color="medium">{{ deviceLabel }}</ion-badge>
+    </div>
+    <div *ngIf="!hasViewport && session" class="ion-padding-horizontal viewport-fallback-message">
+      <ion-text color="medium"><small>Replay viewport unknown; positions may not match original device.</small></ion-text>
+    </div>
+    <div class="iframe-wrapper" #viewportContainer>
+      <div class="viewport-outer" *ngIf="hasViewport"
+           [style.width.px]="scaledWidth"
+           [style.height.px]="scaledHeight">
+        <div class="viewport-scaled"
+             [style.width.px]="replayViewportWidth"
+             [style.height.px]="replayViewportHeight"
+             [style.transform]="'scale(' + replayScale + ')'"
+             style="transform-origin: top left">
+          <iframe #replayFrame sandbox="allow-same-origin" title="Replay"></iframe>
+        </div>
+      </div>
+      <div class="viewport-fill" *ngIf="!hasViewport">
+        <iframe #replayFrame sandbox="allow-same-origin" title="Replay"></iframe>
+      </div>
+    </div>
+  </div>
+</ion-content>

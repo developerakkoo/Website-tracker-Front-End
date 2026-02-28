@@ -28,6 +28,11 @@ const routes: Routes = [
   {
     path: 'projects',
     loadChildren: () => import('./pages/projects/projects.module').then( m => m.ProjectsPageModule)
+  },
+  {
+    path: 'replay/:sessionId',
+    loadChildren: () => import('./pages/replay/replay.module').then(m => m.ReplayPageModule),
+    canActivate: [AuthGuard]
   }
 ];
 
