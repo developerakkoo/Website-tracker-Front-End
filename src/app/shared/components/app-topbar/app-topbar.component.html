@@ -1,0 +1,81 @@
+<header class="topbar" role="banner">
+  <div class="topbar__row">
+    <ion-button
+      class="topbar__menu-btn"
+      fill="clear"
+      aria-label="Open menu"
+      (click)="openMenu()">
+      <ion-icon slot="icon-only" name="menu-outline"></ion-icon>
+    </ion-button>
+
+    <h1 class="topbar__title">{{ pageTitle() }}</h1>
+
+    <div class="topbar__desktop">
+      <ion-item lines="none" class="topbar__select-wrap" *ngIf="projects.length > 0">
+        <ion-label position="stacked" class="visually-hidden">Project</ion-label>
+        <ion-select
+          interface="popover"
+          [placeholder]="selectedProjectId ? 'Project' : 'Select project'"
+          [value]="selectedProjectId"
+          (ionChange)="onProjectChange($any($event).detail.value)"
+          aria-label="Select project">
+          <ion-select-option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-button fill="clear" id="topbar-date-btn" aria-label="Date range (coming soon)">
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        <span class="topbar__btn-label">Last 7 days</span>
+      </ion-button>
+
+      <ion-searchbar
+        class="topbar__search"
+        placeholder="Search…"
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearchSubmit()"
+        [showClearButton]="'focus'"
+        aria-label="Global search">
+      </ion-searchbar>
+
+      <ion-button fill="clear" aria-label="Notifications">
+        <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+      </ion-button>
+    </div>
+
+    <div class="topbar__mobile-actions">
+      <ion-button
+        *ngIf="projects.length > 0"
+        fill="clear"
+        (click)="mobileProjectOpen = !mobileProjectOpen"
+        aria-label="Switch project">
+        <ion-icon slot="icon-only" name="folder-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" (click)="searchOpen = !searchOpen" aria-label="Toggle search">
+        <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <div *ngIf="mobileProjectOpen && projects.length > 0" class="topbar__mobile-project">
+    <ion-item lines="none" class="topbar__select-wrap">
+      <ion-label position="stacked">Project</ion-label>
+      <ion-select
+        interface="action-sheet"
+        [value]="selectedProjectId"
+        (ionChange)="onProjectChange($any($event).detail.value)"
+        aria-label="Select project">
+        <ion-select-option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </div>
+
+  <div *ngIf="searchOpen" class="topbar__mobile-search">
+    <ion-searchbar
+      placeholder="Search…"
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearchSubmit()"
+      [showCancelButton]="true"
+      (ionCancel)="searchOpen = false">
+    </ion-searchbar>
+  </div>
+</header>

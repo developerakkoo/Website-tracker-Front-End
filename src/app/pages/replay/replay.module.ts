@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { ReplayPageRoutingModule } from './replay-routing.module';
+import { SharedModule } from 'src/app/shared/shared.module';
 import { ReplayPage } from './replay.page';
 
 @NgModule({
@@ -10,7 +11,8 @@ import { ReplayPage } from './replay.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    ReplayPageRoutingModule
+    SharedModule,
+    ReplayPageRoutingModule,
   ],
   declarations: [ReplayPage]
 })

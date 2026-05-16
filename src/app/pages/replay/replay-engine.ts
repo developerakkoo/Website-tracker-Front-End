@@ -36,6 +36,50 @@ export class ReplayEngine {
     this.baseTime = this.events.length > 0 ? this.events[0].timestamp : 0;
   }
 
+  getEvents(): ReplayEvent[] {
+    return this.events;
+  }
+
+  getBaseTime(): number {
+    return this.baseTime;
+  }
+
+  getCurrentEventIndex(): number {
+    return this.currentEventIndex;
+  }
+
+  seekToEventIndex(targetIndex: number): void {
+    this.pause();
+    if (targetIndex < 0) targetIndex = 0;
+    if (targetIndex > this.events.length) targetIndex = this.events.length;
+    this.currentEventIndex = 0;
+    this.pausedElapsedTime = 0;
+    for (let i = 0; i < targetIndex; i++) {
+      const ev = this.events[i];
+      this.onApplyEvent(ev, ev.timestamp - this.baseTime);
+    }
+    this.currentEventIndex = targetIndex;
+    this.pausedElapsedTime =
+      targetIndex > 0 ? this.events[targetIndex - 1].timestamp - this.baseTime : 0;
+  }
+
+  setPlaybackState(eventIndex: number): void {
+    this.pause();
+    if (eventIndex < 0) eventIndex = 0;
+    if (eventIndex > this.events.length) eventIndex = this.events.length;
+    this.currentEventIndex = eventIndex;
+    this.pausedElapsedTime =
+      eventIndex > 0 ? this.events[eventIndex - 1].timestamp - this.baseTime : 0;
+  }
+
+  findNextPageFirstEventIndex(fromIndex: number, currentPageIndex: number): number {
+    for (let i = fromIndex; i < this.events.length; i++) {
+      const pi = this.events[i].pageIndex ?? 0;
+      if (pi > currentPageIndex) return i;
+    }
+    return -1;
+  }
+
   play(): void {
     if (this.isPlaying || this.currentEventIndex >= this.events.length) return;
     this.playbackStartTime = performance.now();

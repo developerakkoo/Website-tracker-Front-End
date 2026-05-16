@@ -1,119 +1,115 @@
-ion-menu ion-content {
-  --background: var(--ion-item-background, var(--ion-background-color, #fff));
+@media (min-width: 1024px) {
+  ion-split-pane:not(.app-guest) {
+    --side-width: 256px;
+    --side-max-width: 256px;
+  }
 }
 
-ion-menu.md ion-content {
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 20px;
-  --padding-bottom: 20px;
+ion-menu {
+  --width: 256px;
+  --max-width: 256px;
 }
 
-ion-menu.md ion-list {
-  padding: 20px 0;
+.menu-header ion-toolbar {
+  --background: transparent;
+  --border-width: 0 0 1px 0;
+  --border-color: var(--wt-border);
+  --min-height: 48px;
 }
 
-ion-menu.md ion-note {
-  margin-bottom: 30px;
+.menu-header ion-title {
+  font-family: var(--wt-font-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
 }
 
-ion-menu.md ion-list-header,
-ion-menu.md ion-note {
-  padding-left: 10px;
+.menu-content {
+  --background: var(--wt-surface);
+  --padding-start: var(--wt-space-16);
+  --padding-end: var(--wt-space-16);
+  --padding-top: var(--wt-space-16);
+  border-inline-end: 1px solid var(--wt-border);
 }
 
-ion-menu.md ion-list#inbox-list {
-  border-bottom: 1px solid var(--ion-background-color-step-150, #d7d8da);
+.menu-tagline {
+  margin: 0 0 var(--wt-space-8);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--wt-text-muted);
 }
 
-ion-menu.md ion-list#inbox-list ion-list-header {
-  font-size: 22px;
+.menu-active-project {
+  margin: 0 0 var(--wt-space-16);
+  font-size: 0.875rem;
   font-weight: 600;
-
-  min-height: 20px;
+  color: var(--wt-text);
+  line-height: 1.3;
+  word-break: break-word;
 }
 
-ion-menu.md ion-list#labels-list ion-list-header {
-  font-size: 16px;
-
-  margin-bottom: 18px;
-
-  color: #757575;
-
-  min-height: 26px;
+.nav-list {
+  background: transparent;
+  padding: 0;
 }
 
-ion-menu.md ion-item {
-  --padding-start: 10px;
-  --padding-end: 10px;
-  border-radius: 4px;
+.nav-item {
+  --background: transparent;
+  --border-radius: var(--wt-radius-control);
+  --min-height: 48px;
+  margin-bottom: var(--wt-space-4);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--wt-text-muted);
+  border-inline-start: 3px solid transparent;
+
+  ion-icon {
+    color: var(--wt-text-muted);
+    font-size: 20px;
+    margin-inline-end: var(--wt-space-8);
+  }
 }
 
-ion-menu.md ion-item.selected {
-  --background: rgba(var(--ion-color-primary-rgb), 0.14);
+.nav-item--active {
+  --background: rgba(var(--wt-primary-rgb), 0.08);
+  border-inline-start-color: var(--wt-primary);
+  color: var(--wt-text);
+
+  ion-icon {
+    color: var(--wt-primary);
+  }
+
+  ion-label {
+    color: var(--wt-text);
+    font-weight: 600;
+  }
 }
 
-ion-menu.md ion-item.selected ion-icon {
-  color: var(--ion-color-primary);
+.main-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  background: var(--wt-bg);
 }
 
-ion-menu.md ion-item ion-icon {
-  color: #616e7e;
+ion-split-pane.app-guest {
+  --side-width: 0;
+  --side-max-width: 0;
+  --border: none;
 }
 
-ion-menu.md ion-item ion-label {
-  font-weight: 500;
+ion-split-pane.app-guest ion-menu {
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
 }
 
-ion-menu.ios ion-content {
-  --padding-bottom: 20px;
-}
-
-ion-menu.ios ion-list {
-  padding: 20px 0 0 0;
-}
-
-ion-menu.ios ion-note {
-  line-height: 24px;
-  margin-bottom: 20px;
-}
-
-ion-menu.ios ion-item {
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --min-height: 50px;
-}
-
-ion-menu.ios ion-item.selected ion-icon {
-  color: var(--ion-color-primary);
-}
-
-ion-menu.ios ion-item ion-icon {
-  font-size: 24px;
-  color: #73849a;
-}
-
-ion-menu.ios ion-list#labels-list ion-list-header {
-  margin-bottom: 8px;
-}
-
-ion-menu.ios ion-list-header,
-ion-menu.ios ion-note {
-  padding-left: 16px;
-  padding-right: 16px;
-}
-
-ion-menu.ios ion-note {
-  margin-bottom: 8px;
-}
-
-ion-note {
-  display: inline-block;
-  font-size: 16px;
-
-  color: var(--ion-color-medium-shade);
-}
-
-ion-item.selected {
-  --color: var(--ion-color-primary);
+ion-split-pane.app-guest .main-shell {
+  width: 100%;
+  max-width: 100%;
 }

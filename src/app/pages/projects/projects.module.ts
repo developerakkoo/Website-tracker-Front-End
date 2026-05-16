@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { ProjectsPageRoutingModule } from './projects-routing.module';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 import { ProjectsPage } from './projects.page';
 
@@ -13,7 +14,8 @@ import { ProjectsPage } from './projects.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    ProjectsPageRoutingModule
+    SharedModule,
+    ProjectsPageRoutingModule,
   ],
   declarations: [ProjectsPage]
 })

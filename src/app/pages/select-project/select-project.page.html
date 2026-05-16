@@ -1,0 +1,44 @@
+<ion-content [fullscreen]="true" class="select-project">
+  <div class="select-project__inner">
+    <header class="select-project__header">
+      <h1>Choose a project</h1>
+      <p>Select which site you want to analyze. You can switch projects anytime from the header.</p>
+    </header>
+
+    <ion-searchbar
+      *ngIf="!loading && projects.length > 0"
+      class="select-project__search"
+      placeholder="Search projects…"
+      [(ngModel)]="searchQuery"
+      (ionInput)="onSearchChange()"
+      debounce="150"
+      aria-label="Search projects">
+    </ion-searchbar>
+
+    <div *ngIf="loading" class="select-project__state">
+      <ion-spinner name="crescent" aria-label="Loading projects"></ion-spinner>
+    </div>
+
+    <p *ngIf="error" class="select-project__error" role="alert">{{ error }}</p>
+
+    <div *ngIf="!loading && !error && filtered.length === 0 && projects.length > 0" class="select-project__state">
+      <p>No projects match your search.</p>
+    </div>
+
+    <div *ngIf="!loading && filtered.length > 0" class="select-project__grid">
+      <button
+        type="button"
+        class="select-project__card"
+        *ngFor="let p of filtered"
+        (click)="openProject(p)"
+        [attr.aria-label]="'Open project ' + p.name">
+        <span class="select-project__card-name">{{ p.name }}</span>
+        <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+
+    <footer class="select-project__footer">
+      <ion-button fill="clear" (click)="goToProjects()">Manage projects</ion-button>
+    </footer>
+  </div>
+</ion-content>

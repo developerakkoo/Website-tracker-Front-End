@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Auth } from './auth';
 import { environment } from 'src/environments/environment.prod';
 
 export interface ProjectStatus {
@@ -16,9 +15,7 @@ export interface ProjectStatus {
 export class Projects {
   
   
-  constructor(private Http: HttpClient,
-              private auth:Auth
-  ){}
+  constructor(private Http: HttpClient) {}
 
   
   createNewProject(body:any){

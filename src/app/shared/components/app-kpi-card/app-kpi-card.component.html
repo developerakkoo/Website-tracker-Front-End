@@ -1,0 +1,10 @@
+<article class="kpi wt-hover-lift" [attr.data-accent]="accent" role="status">
+  <div class="kpi__icon" aria-hidden="true">
+    <ion-icon [name]="icon"></ion-icon>
+  </div>
+  <div class="kpi__content">
+    <span class="kpi__label">{{ label }}</span>
+    <span class="kpi__value">{{ value }}</span>
+    <span *ngIf="hint" class="kpi__hint">{{ hint }}</span>
+  </div>
+</article>

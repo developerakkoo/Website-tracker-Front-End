@@ -1,0 +1,45 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Sessions</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="wt-page-padding sessions-hub">
+    <p class="wt-text-muted sessions-hub__intro" *ngIf="projectName">
+      Recorded sessions for <strong>{{ projectName }}</strong>
+    </p>
+
+    <div *ngIf="loading" class="sessions-hub__state">
+      <ion-spinner name="crescent" aria-label="Loading sessions"></ion-spinner>
+    </div>
+
+    <p *ngIf="error" class="sessions-hub__error" role="alert">{{ error }}</p>
+
+    <app-card
+      *ngIf="!loading && !error && sessions.length === 0"
+      title="No sessions yet"
+      subtitle="Install the tracker on your site and visit a few pages.">
+      <ion-button expand="block" [routerLink]="['/projects/details', projectContext.activeProjectId]" *ngIf="projectContext.activeProjectId">
+        View installation snippet
+      </ion-button>
+    </app-card>
+
+    <ion-list *ngIf="!loading && sessions.length > 0" lines="full" class="sessions-list">
+      <ion-item
+        button
+        *ngFor="let s of sessions"
+        (click)="openReplay(s)"
+        [attr.aria-label]="'Replay session ' + (s.sessionId || '')">
+        <ion-label>
+          <h2>{{ s.url || 'Unknown page' }}</h2>
+          <p>{{ formatDate(s.startedAt) }} · {{ s.eventCount ?? 0 }} events</p>
+        </ion-label>
+        <ion-icon slot="end" name="play-circle-outline" color="primary"></ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+</ion-content>

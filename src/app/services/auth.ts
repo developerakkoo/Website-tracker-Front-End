@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment.prod';
 import { Data } from './data';
+import { ProjectContextService } from './project-context.service';
 
 interface AuthResponse {
   token: string;
@@ -22,7 +23,8 @@ export class Auth {
   constructor(
     private http: HttpClient,
     private router: Router,
-    private data: Data
+    private data: Data,
+    private projectContext: ProjectContextService
   ) {
     this.init();
   }
@@ -63,9 +65,10 @@ export class Auth {
 
   // 🔹 Logout
   async logout() {
+    await this.projectContext.clearActiveProject();
     await this.data.remove(this.tokenKey);
     this._authState.next(false);
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
   }
 
   // 🔹 Get Token

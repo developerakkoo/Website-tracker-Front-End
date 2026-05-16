@@ -1,0 +1,115 @@
+.heatmap-layout {
+  padding-top: 0;
+  padding-bottom: var(--wt-space-32);
+  box-sizing: border-box;
+}
+
+.heatmap-toolbar {
+  padding: var(--wt-space-16);
+  margin-bottom: var(--wt-space-24);
+  border-radius: var(--wt-radius-card);
+  box-sizing: border-box;
+}
+
+.heatmap-toolbar ion-row {
+  margin: 0 calc(var(--wt-space-8) * -1);
+}
+
+.heatmap-toolbar ion-col {
+  padding: var(--wt-space-8);
+}
+
+.heatmap-field {
+  --background: transparent;
+  width: 100%;
+  margin: 0;
+}
+
+.heatmap-body {
+  display: grid;
+  gap: var(--wt-space-16);
+  align-items: start;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: var(--wt-space-24);
+    align-items: stretch;
+  }
+}
+
+.heatmap-viewer-wrap {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.viewer-wrapper {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-height: 360px;
+  position: relative;
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-card);
+  overflow: hidden;
+  background: var(--wt-bg);
+  box-sizing: border-box;
+}
+
+.iframe-container {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 720px);
+  min-height: 360px;
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+}
+
+.heatmap-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.overlay-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250, 250, 249, 0.88);
+  backdrop-filter: blur(2px);
+}
+
+.heatmap-sidebar {
+  min-width: 0;
+}
+
+.heatmap-sidebar ion-list ion-item {
+  --min-height: 48px;
+  --padding-start: var(--wt-space-16);
+  --inner-padding-end: var(--wt-space-16);
+}
+
+.heatmap-sidebar ion-item:hover {
+  --background: rgba(var(--wt-shadow-color), 0.04);
+}
+
+@media (max-width: 1023px) {
+  .heatmap-sidebar {
+    order: 2;
+  }
+}

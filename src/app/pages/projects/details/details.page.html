@@ -1,114 +1,139 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
       <ion-back-button defaultHref="/projects"></ion-back-button>
     </ion-buttons>
-    <ion-title>Project Details</ion-title>
+    <ion-title>Project</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <div *ngIf="project" class="ion-padding">
-    
-    <!-- Project Info Card -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>{{ project.name }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-item lines="none">
-          <ion-label>
-            <h2>Tracking ID</h2>
-            <p class="api-key">{{ project.apiKey }}</p>
-          </ion-label>
-          <ion-button slot="end" fill="clear" size="small" (click)="copyToClipboard(project.apiKey, 'Tracking ID')">
-            <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
-          </ion-button>
-        </ion-item>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Installation Snippet Card -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Installation Snippet</ion-card-title>
-        <ion-card-subtitle>Add this code to your website's HTML</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <div class="snippet-container">
-          <pre><code>{{ installationSnippet }}</code></pre>
+  <div *ngIf="project" class="wt-page-padding details-page">
+    <header class="details-header">
+      <div class="details-header__title">
+        <h1 class="details-title">{{ project.name }}</h1>
+        <div class="details-subrow">
+          <ion-badge class="status-pill" [color]="getStatusBadge().color">
+            {{ getStatusBadge().text }}
+          </ion-badge>
+          <span class="wt-text-muted">Project ID: <span class="mono">{{ projectId }}</span></span>
         </div>
-        <ion-button expand="block" (click)="copyToClipboard(installationSnippet, 'Installation snippet')">
+      </div>
+
+      <div class="details-header__actions">
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="copyToClipboard(project.apiKey, 'Tracking ID')"
+          aria-label="Copy tracking ID">
           <ion-icon slot="start" name="copy-outline"></ion-icon>
-          Copy Installation Code
+          Copy ID
         </ion-button>
-      </ion-card-content>
-    </ion-card>
-
-    <!-- Installation Status Card -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Installation Status</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <ion-button expand="block" (click)="checkInstallationStatus()">
+        <ion-button
+          size="small"
+          (click)="checkInstallationStatus()"
+          aria-label="Check installation status">
           <ion-icon slot="start" name="refresh-outline"></ion-icon>
-          Check Installation Status
+          Check status
         </ion-button>
+      </div>
+    </header>
 
-        <div *ngIf="status" class="status-container">
-          <ion-item lines="none">
-            <ion-label>
-              <h2>Status</h2>
-            </ion-label>
-            <ion-badge [color]="getStatusBadge().color">{{ getStatusBadge().text }}</ion-badge>
-          </ion-item>
+    <div class="details-grid">
+      <section class="details-col details-col--left">
+        <app-card title="Tracking" subtitle="Install the snippet and start recording sessions.">
+          <div class="tracking-row">
+            <div class="tracking-row__label">Tracking ID</div>
+            <div class="tracking-row__value">
+              <code class="code-pill">{{ project.apiKey }}</code>
+              <ion-button
+                size="small"
+                fill="clear"
+                (click)="copyToClipboard(project.apiKey, 'Tracking ID')"
+                aria-label="Copy tracking ID">
+                <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </app-card>
 
-          <ion-item lines="none" *ngIf="status.lastSeen">
-            <ion-label>
-              <h2>Last Seen</h2>
-              <p>{{ getLastSeenText() }}</p>
-            </ion-label>
-          </ion-item>
+        <app-card title="Installation snippet" subtitle="Add this to your website HTML (before closing body).">
+          <div class="snippet-container" role="region" aria-label="Installation snippet">
+            <pre><code>{{ installationSnippet }}</code></pre>
+          </div>
+          <ion-button
+            expand="block"
+            class="wt-btn-follow"
+            (click)="copyToClipboard(installationSnippet, 'Installation snippet')">
+            <ion-icon slot="start" name="copy-outline"></ion-icon>
+            Copy installation code
+          </ion-button>
+        </app-card>
 
-          <ion-item lines="none" *ngIf="status.lastUrl">
-            <ion-label>
-              <h2>Last URL</h2>
-              <p class="url-text">{{ status.lastUrl }}</p>
-            </ion-label>
-          </ion-item>
-        </div>
-      </ion-card-content>
-    </ion-card>
+        <app-card title="Heatmaps" subtitle="Click, scroll, and attention overlays by URL.">
+          <ion-button expand="block" class="wt-btn-follow" [routerLink]="['/heatmaps', projectId]">
+            <ion-icon slot="start" name="flame-outline"></ion-icon>
+            View heatmaps
+          </ion-button>
+        </app-card>
+      </section>
 
-    <!-- Sessions & Replay Card -->
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Sessions</ion-card-title>
-        <ion-card-subtitle>Recorded sessions with replay</ion-card-subtitle>
-      </ion-card-header>
-      <ion-card-content>
-        <div *ngIf="sessionsLoading" class="ion-padding">
-          <ion-spinner></ion-spinner>
-          <p>Loading sessions...</p>
-        </div>
-        <div *ngIf="!sessionsLoading && sessions.length === 0">
-          <p>No sessions yet. Install the tracker on your site and visit it to record sessions.</p>
-        </div>
-        <ion-list *ngIf="!sessionsLoading && sessions.length > 0">
-          <ion-item *ngFor="let s of sessions" [button]="true" (click)="openReplay(s.sessionId)">
-            <ion-label>
-              <h2>{{ s.url || 'Session' }}</h2>
-              <p>{{ formatSessionDate(s.startedAt) }} · {{ s.eventCount }} events <span *ngIf="s.deviceType" class="device-badge">{{ formatDeviceType(s.deviceType) }}</span></p>
-            </ion-label>
-            <ion-button slot="end" fill="clear" size="small">
-              <ion-icon name="play-circle-outline"></ion-icon>
-              Replay
-            </ion-button>
-          </ion-item>
-        </ion-list>
-      </ion-card-content>
-    </ion-card>
+      <section class="details-col details-col--right">
+        <app-card title="Installation status" subtitle="Confirm the tracker is sending data.">
+          <div class="status-row">
+            <span class="status-row__label">Status</span>
+            <ion-badge class="status-pill" [color]="getStatusBadge().color">
+              {{ getStatusBadge().text }}
+            </ion-badge>
+          </div>
+
+          <div *ngIf="status" class="status-grid">
+            <div class="status-item">
+              <div class="status-item__k">Last seen</div>
+              <div class="status-item__v">{{ getLastSeenText() }}</div>
+            </div>
+            <div class="status-item" *ngIf="status.lastUrl">
+              <div class="status-item__k">Last URL</div>
+              <div class="status-item__v url-text">{{ status.lastUrl }}</div>
+            </div>
+          </div>
+
+          <ion-button expand="block" fill="outline" class="wt-btn-follow" (click)="checkInstallationStatus()">
+            <ion-icon slot="start" name="refresh-outline"></ion-icon>
+            Refresh status
+          </ion-button>
+        </app-card>
+
+        <app-card title="Sessions" subtitle="Recorded sessions with replay.">
+          <div *ngIf="sessionsLoading" class="details-loading">
+            <ion-spinner></ion-spinner>
+            <p class="wt-text-muted">Loading sessions…</p>
+          </div>
+
+          <div *ngIf="!sessionsLoading && sessions.length === 0" class="details-empty">
+            <p class="wt-text-muted">
+              No sessions yet. Install the tracker on your site and visit it to record sessions.
+            </p>
+          </div>
+
+          <ion-list *ngIf="!sessionsLoading && sessions.length > 0" class="wt-list-interactive sessions-list" lines="none">
+            <ion-item *ngFor="let s of sessions" [button]="true" (click)="openReplay(s.sessionId)">
+              <ion-label class="session-label">
+                <div class="session-title">{{ s.url || 'Session' }}</div>
+                <div class="session-meta">
+                  <span>{{ formatSessionDate(s.startedAt) }}</span>
+                  <span class="meta-dot">·</span>
+                  <span>{{ s.eventCount }} events</span>
+                  <span *ngIf="s.deviceType" class="device-badge">{{ formatDeviceType(s.deviceType) }}</span>
+                </div>
+              </ion-label>
+              <ion-icon slot="end" class="replay-icon" name="play-circle-outline" aria-hidden="true"></ion-icon>
+            </ion-item>
+          </ion-list>
+        </app-card>
+      </section>
+    </div>
 
   </div>
 </ion-content>

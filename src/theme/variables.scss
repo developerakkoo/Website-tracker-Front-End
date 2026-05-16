@@ -1,2 +1,110 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+/**
+ * Website Tracker — Ember Studio design tokens
+ */
+
+:root {
+  /* Spacing — base scale + Ember 20 / 64 / 80 */
+  --wt-space-4: 4px;
+  --wt-space-8: 8px;
+  --wt-space-12: 12px;
+  --wt-space-16: 16px;
+  --wt-space-20: 20px;
+  --wt-space-24: 24px;
+  --wt-space-32: 32px;
+  --wt-space-40: 40px;
+  --wt-space-48: 48px;
+  --wt-space-64: 64px;
+  --wt-space-80: 80px;
+
+  --wt-space: 8px;
+
+  /* Ember surfaces & text */
+  --wt-bg: #fafaf9;
+  --wt-surface: #f5f5f4;
+  --wt-surface-raised: #e7e5e4;
+  --wt-card: #f5f5f4;
+  --wt-border: #d6d3d1;
+  --wt-text: #1c1917;
+  --wt-text-muted: #57534e;
+
+  --wt-primary: #c2410c;
+  --wt-accent: #f59e0b;
+  --wt-success: #16a34a;
+  --wt-warning: #d97706;
+  --wt-danger: #dc2626;
+
+  --wt-shadow-color: 28, 25, 23;
+  --wt-primary-rgb: 194, 65, 12;
+
+  /* Radius — cards 12px, controls 8px, inline 4px */
+  --wt-radius-card: 12px;
+  --wt-radius-control: 8px;
+  --wt-radius-inline: 4px;
+  --wt-radius: 12px;
+  --wt-radius-lg: 12px;
+
+  --wt-font: "Source Sans 3", system-ui, -apple-system, sans-serif;
+  --wt-font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
+  --wt-font-code: "Fira Code", ui-monospace, SFMono-Regular, monospace;
+
+  /* Ionic */
+  --ion-font-family: var(--wt-font);
+  --ion-background-color: var(--wt-bg);
+  --ion-background-color-rgb: 250, 250, 249;
+  --ion-text-color: var(--wt-text);
+  --ion-text-color-rgb: 28, 25, 23;
+  --ion-toolbar-background: var(--wt-surface);
+  --ion-toolbar-color: var(--wt-text);
+  --ion-item-background: var(--wt-surface);
+  --ion-card-background: var(--wt-card);
+  --ion-border-color: var(--wt-border);
+
+  --ion-color-primary: #c2410c;
+  --ion-color-primary-rgb: 194, 65, 12;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #9a3412;
+  --ion-color-primary-tint: #ce6b45;
+
+  --ion-color-success: #16a34a;
+  --ion-color-success-rgb: 22, 163, 74;
+  --ion-color-warning: #d97706;
+  --ion-color-warning-rgb: 217, 119, 6;
+  --ion-color-danger: #dc2626;
+  --ion-color-danger-rgb: 220, 38, 38;
+  --ion-color-medium: #78716c;
+  --ion-color-medium-rgb: 120, 113, 108;
+  --ion-color-light: #e7e5e4;
+  --ion-color-light-rgb: 231, 229, 228;
+  --ion-color-dark: #1c1917;
+  --ion-color-dark-rgb: 28, 25, 23;
+
+  --ion-tab-bar-background: var(--wt-surface);
+  --ion-tab-bar-border-color: var(--wt-border);
+}
+
+h1,
+.h1 {
+  font-family: var(--wt-font-heading);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--wt-text);
+  margin: 0 0 var(--wt-space-12);
+}
+
+h2,
+.h2 {
+  font-family: var(--wt-font-heading);
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--wt-text);
+  margin: 0 0 var(--wt-space-8);
+}
+
+.ion-page {
+  font-family: var(--wt-font);
+}

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { AddPage } from './add/add.page';
 import { Projects } from 'src/app/services/projects';
+import { ProjectContextService } from 'src/app/services/project-context.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
@@ -15,21 +16,33 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class ProjectsPage implements OnInit {
 
   projects:any[] = [];
-  constructor(private router:Router,
-              private projectsService: Projects,
-              private modalController: ModalController
-  ) { }
+  activeProjectId: string | null = null;
+
+  constructor(
+    private router: Router,
+    private projectsService: Projects,
+    private modalController: ModalController,
+    private projectContext: ProjectContextService
+  ) {}
 
   ngOnInit() {
+    this.activeProjectId = this.projectContext.activeProjectId;
     this.loadProjects();
   }
 
-  ionViewWillEnter(){
+  ionViewWillEnter() {
+    this.activeProjectId = this.projectContext.activeProjectId;
     this.loadProjects();
   }
 
-  navigateToDetails(projectId: string) {
-    this.router.navigate(['/projects/details', projectId]);
+  async navigateToDetails(project: { _id: string; name?: string }) {
+    await this.projectContext.setActiveProject(project);
+    this.activeProjectId = project._id;
+    void this.router.navigate(['/projects/details', project._id]);
+  }
+
+  isActiveProject(projectId: string): boolean {
+    return this.activeProjectId === projectId;
   }
 async presentNewProjectCreateModal() {
   const modal = await this.modalController.create({

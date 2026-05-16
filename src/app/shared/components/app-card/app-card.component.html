@@ -1,0 +1,9 @@
+<section class="wt-card wt-hover-lift" [class.no-padding]="!padding">
+  <header *ngIf="title || subtitle" class="wt-card__head">
+    <h2 *ngIf="title" class="wt-card__title">{{ title }}</h2>
+    <p *ngIf="subtitle" class="wt-card__sub">{{ subtitle }}</p>
+  </header>
+  <div class="wt-card__body">
+    <ng-content></ng-content>
+  </div>
+</section>

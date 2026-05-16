@@ -5,6 +5,7 @@ import { Projects, ProjectStatus } from 'src/app/services/projects';
 import { SessionService, ProjectSession } from 'src/app/services/session';
 import { HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
+import { ProjectContextService } from 'src/app/services/project-context.service';
 
 @Component({
   selector: 'app-details',
@@ -27,7 +28,8 @@ export class DetailsPage implements OnInit {
     private projectsService: Projects,
     private sessionService: SessionService,
     private toastController: ToastController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private projectContext: ProjectContextService
   ) {}
 
   ngOnInit() {
@@ -49,6 +51,7 @@ export class DetailsPage implements OnInit {
     this.projectsService.getProjectById(this.projectId).subscribe({
       next: async (project: any) => {
         this.project = project;
+        await this.projectContext.setActiveProject(project);
         this.generateInstallationSnippet();
         this.loadSessions();
         await loading.dismiss();

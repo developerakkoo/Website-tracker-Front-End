@@ -1,30 +1,34 @@
-
-
-<ion-content [fullscreen]="true">
-  <ion-grid fixed>
-    <ion-row>
-      <ion-col size="6">
-        <ion-card>
-  <ion-card-content>
-     <form [formGroup]="_form" (ngSubmit)="onSubmit()">
-  <ion-item>
-    <ion-label position="floating">E-Mail <ion-text color="danger">*</ion-text></ion-label>
-    <ion-input required formControlName="email" type="text"></ion-input>
-  </ion-item>
-  <ion-item>
-    <ion-label position="floating">Password <ion-text color="danger">*</ion-text></ion-label>
-    <ion-input required formControlName="password" type="text"></ion-input>
-  </ion-item>
-  <ion-button block color="primary" type="submit" [disabled]="_form.invalid">
-    Login
-  </ion-button>
-  <p routerLink="/register">Not a user? register here</p>
- </form>
-  </ion-card-content>
-</ion-card>
-      </ion-col>
-      <ion-col size="6"></ion-col>
-    </ion-row>
-  </ion-grid>
-
+<ion-content [fullscreen]="true" class="auth-page">
+  <div class="auth-layout">
+    <div class="auth-brand">
+      <h1 class="auth-brand__title">Website Tracker</h1>
+      <p class="auth-brand__tagline">Session replay, heatmaps, and product analytics in one place.</p>
+    </div>
+    <div class="auth-card-wrap">
+      <ion-card class="auth-card">
+        <ion-card-header>
+          <ion-card-title>Sign in</ion-card-title>
+          <ion-card-subtitle>Welcome back</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="_form" (ngSubmit)="onSubmit()">
+            <ion-item lines="full" class="auth-field">
+              <ion-label position="stacked">Email <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="email" type="email" autocomplete="email" inputmode="email"></ion-input>
+            </ion-item>
+            <ion-item lines="full" class="auth-field">
+              <ion-label position="stacked">Password <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="password" type="password" autocomplete="current-password"></ion-input>
+            </ion-item>
+            <ion-button expand="block" type="submit" [disabled]="_form.invalid" class="wt-btn-follow">
+              Log in
+            </ion-button>
+            <p class="auth-switch">
+              <a routerLink="/register">Create an account</a>
+            </p>
+          </form>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
 </ion-content>

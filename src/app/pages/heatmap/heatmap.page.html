@@ -1,0 +1,101 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <ion-back-button [defaultHref]="'/projects/details/' + projectId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ projectName }} · Heatmaps</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="heatmap-layout wt-page-padding">
+    <div class="heatmap-toolbar wt-surface-panel">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col size="12" sizeMd="4">
+            <ion-item lines="none" class="heatmap-field">
+              <ion-label position="stacked">URL</ion-label>
+              <ion-select
+                [value]="selectedUrl"
+                (ionChange)="selectedUrl = $any($event).detail.value; onUrlChange()"
+                [disabled]="loadingUrls"
+                interface="action-sheet"
+                [interfaceOptions]="{ header: 'Page URL' }">
+                <ion-select-option *ngFor="let u of urls" [value]="u">{{ u }}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12" sizeMd="5">
+            <ion-item lines="none" class="heatmap-field">
+              <ion-label position="stacked">Type</ion-label>
+              <ion-segment [value]="selectedType" (ionChange)="selectedType = $any($event).detail.value; onTypeChange()">
+                <ion-segment-button value="click">
+                  <ion-label>Click</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="scroll">
+                  <ion-label>Scroll</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="attention">
+                  <ion-label>Attention</ion-label>
+                </ion-segment-button>
+              </ion-segment>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12" sizeMd="3">
+            <ion-item lines="none" class="heatmap-field">
+              <ion-label position="stacked">Device</ion-label>
+              <ion-select
+                [value]="selectedDevice"
+                (ionChange)="selectedDevice = $any($event).detail.value; onDeviceChange()"
+                interface="action-sheet">
+                <ion-select-option value="all">All</ion-select-option>
+                <ion-select-option value="desktop">Desktop</ion-select-option>
+                <ion-select-option value="android">Android</ion-select-option>
+                <ion-select-option value="ios">iOS</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <div *ngIf="loadingUrls" class="ion-padding">
+      <ion-spinner></ion-spinner>
+      <p class="wt-text-muted">Loading URLs…</p>
+    </div>
+    <div *ngIf="error && !loading" class="ion-padding">
+      <ion-text color="danger">{{ error }}</ion-text>
+    </div>
+    <div *ngIf="!loadingUrls && urls.length === 0 && !error" class="ion-padding">
+      <ion-text color="medium">No heatmap data yet. Visit your tracked site to generate events.</ion-text>
+    </div>
+
+    <div *ngIf="selectedUrl && !loadingUrls" class="heatmap-body">
+      <div class="heatmap-viewer-wrap">
+        <div class="viewer-wrapper">
+          <div class="iframe-container">
+            <iframe #iframe [src]="iframeSrc" title="Page preview"></iframe>
+            <canvas #canvas class="heatmap-canvas"></canvas>
+          </div>
+          <div *ngIf="loading" class="overlay-loading">
+            <ion-spinner></ion-spinner>
+          </div>
+        </div>
+      </div>
+
+      <aside *ngIf="selectedType === 'click' && topClicked.length > 0" class="heatmap-sidebar">
+        <app-card title="Top clicked areas" subtitle="By frequency">
+          <ion-list lines="none">
+            <ion-item *ngFor="let a of topClicked; let i = index">
+              <ion-label>
+                <h3>#{{ i + 1 }} — ({{ a.x }}%, {{ a.y }}%)</h3>
+                <p>{{ a.count }} clicks</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </app-card>
+      </aside>
+    </div>
+  </div>
+</ion-content>

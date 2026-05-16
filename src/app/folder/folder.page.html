@@ -8,14 +8,87 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">{{ folder }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="wt-page-padding dashboard">
+    <p class="dashboard__welcome wt-text-muted" *ngIf="projectName">
+      Overview for <strong>{{ projectName }}</strong>
+    </p>
+    <p class="dashboard__welcome wt-text-muted" *ngIf="!projectName">Overview of your workspace</p>
 
-  <div id="container">
-    <strong class="capitalize">{{ folder }}</strong>
-    <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <ion-grid class="dashboard__kpis ion-no-padding">
+      <ion-row>
+        <ion-col size="12" sizeMd="6" sizeLg="3">
+          <app-kpi-card
+            label="Tracker"
+            [value]="loadingKpi ? '…' : installLabel()"
+            hint="Installation on your site"
+            icon="code-slash-outline"
+            accent="primary">
+          </app-kpi-card>
+        </ion-col>
+        <ion-col size="12" sizeMd="6" sizeLg="3">
+          <app-kpi-card
+            label="Sessions"
+            [value]="loadingKpi ? '…' : sessionsCount"
+            hint="Recorded for this project"
+            icon="pulse-outline"
+            accent="neutral">
+          </app-kpi-card>
+        </ion-col>
+        <ion-col size="12" sizeMd="6" sizeLg="3">
+          <app-kpi-card
+            label="Avg. duration"
+            value="—"
+            hint="Replay-ready sessions"
+            icon="time-outline"
+            accent="neutral">
+          </app-kpi-card>
+        </ion-col>
+        <ion-col size="12" sizeMd="6" sizeLg="3">
+          <app-kpi-card
+            label="Conversion"
+            value="—"
+            hint="Funnels coming soon"
+            icon="trending-up-outline"
+            accent="success">
+          </app-kpi-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-grid class="ion-no-padding dashboard__charts">
+      <ion-row>
+        <ion-col size="12" sizeLg="8">
+          <app-card title="Funnel preview" subtitle="Step-through performance (placeholder)">
+            <div class="chart-placeholder" role="img" aria-label="Chart placeholder">
+              <ion-icon name="analytics-outline"></ion-icon>
+              <span>Wire your funnel API to visualize drop-offs here.</span>
+            </div>
+          </app-card>
+        </ion-col>
+        <ion-col size="12" sizeLg="4">
+          <app-card title="Heatmap preview" subtitle="Engagement hot spots">
+            <div class="chart-placeholder chart-placeholder--compact" role="img" aria-label="Heatmap placeholder">
+              <ion-icon name="flame-outline"></ion-icon>
+              <span>Open a project → Heatmaps for live overlays.</span>
+            </div>
+          </app-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <div class="dashboard__ai">
+    <app-card title="AI insights" subtitle="Automated highlights">
+      <ul class="insight-list">
+        <li>
+          <ion-icon name="bulb-outline" color="warning"></ion-icon>
+          <span><strong>Tip:</strong> Install the snippet on high-traffic pages first to collect meaningful replays.</span>
+        </li>
+        <li>
+          <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
+          <span><strong>Health:</strong> No blocking issues detected in this workspace view.</span>
+        </li>
+      </ul>
+    </app-card>
+    </div>
   </div>
 </ion-content>

@@ -1,37 +1,213 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * Global styles — Website Tracker Ember Studio shell
  */
 
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+@import "./theme/variables.scss";
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* --- Page container --- */
+.wt-page-padding {
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: var(--wt-space-16);
+  padding-bottom: var(--wt-space-24);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .wt-page-padding {
+    padding: var(--wt-space-24);
+    padding-bottom: var(--wt-space-32);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wt-page-padding {
+    padding-inline: var(--wt-space-24);
+    padding-top: var(--wt-space-24);
+    padding-bottom: var(--wt-space-48);
+  }
+}
+
+/* Section vertical rhythm */
+.wt-stack-24 {
+  margin-bottom: var(--wt-space-24) !important;
+}
+
+.wt-stack-32 {
+  margin-bottom: var(--wt-space-32) !important;
+}
+
+.wt-text-muted {
+  color: var(--wt-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+p.wt-text-muted {
+  margin: 0 0 var(--wt-space-8);
+}
+
+p.wt-text-muted:last-child {
+  margin-bottom: 0;
+}
+
+.wt-btn-follow {
+  margin-top: var(--wt-space-16);
+}
+
+.wt-surface-panel {
+  background: var(--wt-surface);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-card);
+  box-shadow: 0 var(--wt-space-4) var(--wt-space-24) rgba(var(--wt-shadow-color), 0.06);
+}
+
+.wt-hover-lift {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 var(--wt-space-8) var(--wt-space-24) rgba(var(--wt-primary-rgb), 0.12);
+    border-color: rgba(var(--wt-primary-rgb), 0.28);
+  }
+}
+
+/* Ionic — alignment & sizing */
+ion-toolbar {
+  --border-width: 0 0 1px 0;
+  --border-color: var(--wt-border);
+  --min-height: 48px;
+  --background: var(--wt-surface);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+ion-button {
+  --border-radius: var(--wt-radius-control);
+  font-weight: 600;
+  --padding-start: var(--wt-space-16);
+  --padding-end: var(--wt-space-16);
+  min-height: 40px;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+ion-button[color="primary"]:not([fill="clear"]):not([fill="outline"]) {
+  --box-shadow: 0 var(--wt-space-4) var(--wt-space-12) rgba(var(--wt-primary-rgb), 0.22);
+}
+
+@media (hover: hover) {
+  ion-button[color="primary"]:not([fill="clear"]):not([fill="outline"]):hover {
+    --box-shadow: 0 var(--wt-space-8) var(--wt-space-16) rgba(var(--wt-primary-rgb), 0.25);
+  }
+}
+
+ion-button[size="small"] {
+  min-height: 36px;
+  --padding-start: var(--wt-space-12);
+  --padding-end: var(--wt-space-12);
+}
+
+ion-card {
+  --background: var(--wt-card);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-card) !important;
+  box-shadow: 0 var(--wt-space-4) var(--wt-space-16) rgba(var(--wt-shadow-color), 0.06);
+  margin: 0 0 var(--wt-space-16);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: var(--wt-border);
+  --min-height: 48px;
+  --padding-start: var(--wt-space-16);
+  --inner-padding-end: var(--wt-space-16);
+  --transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  --padding-start: var(--wt-space-12);
+  --padding-end: var(--wt-space-12);
+  --highlight-color-focused: var(--wt-primary);
+}
+
+ion-item.item-has-focus {
+  --highlight-height: 2px;
+  --highlight-color-focused: var(--wt-primary);
+}
+
+ion-input.ion-focused,
+ion-textarea.ion-focused {
+  --highlight-color-focused: var(--wt-primary);
+}
+
+ion-searchbar {
+  --border-radius: var(--wt-radius-control);
+  --box-shadow: none;
+  min-height: 40px;
+  --background: var(--wt-bg);
+  --color: var(--wt-text);
+  --placeholder-color: var(--wt-text-muted);
+  --icon-color: var(--wt-text-muted);
+  transition: box-shadow 0.15s ease;
+}
+
+ion-searchbar.ion-focused {
+  box-shadow: 0 0 0 3px rgba(var(--wt-primary-rgb), 0.12);
+}
+
+ion-list {
+  background: transparent;
+}
+
+/* Interactive lists — row padding + hover */
+.wt-list-interactive ion-item {
+  --min-height: 48px;
+  --padding-start: var(--wt-space-16);
+  --inner-padding-end: var(--wt-space-16);
+}
+
+.wt-list-interactive ion-item[button],
+.wt-list-interactive ion-item.ion-activatable {
+  cursor: pointer;
+}
+
+.wt-list-interactive ion-item[button]:hover,
+.wt-list-interactive ion-item.ion-activatable:hover {
+  --background: rgba(var(--wt-shadow-color), 0.04);
+}
+
+.ion-page {
+  animation: wt-fade-in 0.15s ease-out;
+}
+
+@keyframes wt-fade-in {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}

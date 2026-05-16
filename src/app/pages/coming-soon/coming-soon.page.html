@@ -1,0 +1,19 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="wt-page-padding">
+    <app-card [title]="title" subtitle="On the roadmap">
+      <p class="wt-text-muted">{{ blurb }}</p>
+      <ion-button expand="block" fill="outline" routerLink="/folder/Home" class="wt-btn-follow">
+        Back to dashboard
+      </ion-button>
+    </app-card>
+  </div>
+</ion-content>

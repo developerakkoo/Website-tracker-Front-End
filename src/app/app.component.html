@@ -1,24 +1,48 @@
 <ion-app>
-  <ion-split-pane contentId="main-content">
-    <ion-menu contentId="main-content" type="overlay">
-      <ion-content>
-        <ion-list id="inbox-list">
-          <ion-list-header>Website Tracker</ion-list-header>
-          <ion-note>One Tool To track!</ion-note>
-
-          @for (p of appPages; track p; let i = $index) {
+  <ion-split-pane
+    [ngClass]="{ 'app-guest': !showShell }"
+    contentId="main-content"
+    when="(min-width: 1024px)">
+    <ion-menu
+      contentId="main-content"
+      type="overlay"
+      menuId="app-menu"
+      [disabled]="!showShell">
+      <ion-header class="menu-header">
+        <ion-toolbar>
+          <ion-title>Website Tracker</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="menu-content">
+        <p class="menu-tagline">Session intelligence</p>
+        <p class="menu-active-project" *ngIf="activeProjectName">{{ activeProjectName }}</p>
+        <ion-list lines="none" class="nav-list">
+          @for (p of appPages; track p.url) {
             <ion-menu-toggle auto-hide="false">
-              <ion-item routerDirection="root" [routerLink]="[p.url]" lines="none" detail="false" routerLinkActive="selected">
-                <ion-icon aria-hidden="true" slot="start" [ios]="p.icon + '-outline'" [md]="p.icon + '-sharp'"></ion-icon>
+              <ion-item
+                button
+                routerDirection="root"
+                [routerLink]="[p.url]"
+                detail="false"
+                routerLinkActive="nav-item--active"
+                [routerLinkActiveOptions]="p.exact ? { exact: true } : { exact: false }"
+                class="nav-item">
+                <ion-icon
+                  aria-hidden="true"
+                  slot="start"
+                  [name]="p.icon">
+                </ion-icon>
                 <ion-label>{{ p.title }}</ion-label>
               </ion-item>
             </ion-menu-toggle>
           }
         </ion-list>
-
-       
       </ion-content>
     </ion-menu>
-    <ion-router-outlet id="main-content"></ion-router-outlet>
+
+    <div class="main-shell" id="main-content">
+      <app-topbar *ngIf="showShell"></app-topbar>
+      <ion-router-outlet></ion-router-outlet>
+    </div>
   </ion-split-pane>
 </ion-app>

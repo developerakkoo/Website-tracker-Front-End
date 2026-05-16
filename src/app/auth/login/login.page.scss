@@ -1,0 +1,99 @@
+.auth-page {
+  --background: var(--wt-bg);
+}
+
+.auth-layout {
+  box-sizing: border-box;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--wt-space-12);
+  max-width: 440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .auth-layout {
+    padding: var(--wt-space-16);
+    max-width: 960px;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--wt-space-48);
+  }
+
+  .auth-brand {
+    flex: 1;
+    text-align: left;
+    margin-bottom: 0;
+  }
+
+  .auth-card-wrap {
+    flex: 0 0 400px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .auth-layout {
+    padding: var(--wt-space-24);
+  }
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: var(--wt-space-32);
+}
+
+.auth-brand__title {
+  font-family: var(--wt-font-heading);
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 700;
+  margin: 0 0 var(--wt-space-8);
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  color: var(--wt-text);
+}
+
+.auth-brand__tagline {
+  margin: 0;
+  color: var(--wt-text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  max-width: 28rem;
+}
+
+.auth-card-wrap {
+  width: 100%;
+}
+
+ion-card.auth-card {
+  margin: 0;
+}
+
+.auth-field {
+  --background: transparent;
+  margin-bottom: var(--wt-space-12);
+  --min-height: 48px;
+
+  ion-label[position='stacked'] {
+    margin-bottom: var(--wt-space-4);
+  }
+}
+
+.auth-field:last-of-type {
+  margin-bottom: var(--wt-space-16);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: var(--wt-space-16);
+  font-size: 0.875rem;
+  line-height: 1.5;
+
+  a {
+    color: var(--wt-primary);
+    text-decoration: none;
+    font-weight: 500;
+  }
+}
