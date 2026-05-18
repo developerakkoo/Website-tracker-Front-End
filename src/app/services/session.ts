@@ -26,7 +26,17 @@ export interface SessionInfo {
 
 export interface ReplayEvent {
   type: string;
-  data: { x?: number; y?: number; scrollY?: number; url?: string };
+  data: {
+    x?: number;
+    y?: number;
+    scrollY?: number;
+    url?: string;
+    goalKey?: string;
+    goalName?: string;
+    pageUrl?: string;
+    elementTag?: string;
+    elementText?: string;
+  };
   timestamp: number;
   pageIndex?: number;
 }
@@ -55,6 +65,7 @@ export interface ProjectSession {
   duration: number;
   deviceType?: string;
   viewport?: { width: number; height: number };
+  pages?: SessionPageMeta[];
 }
 
 @Injectable({

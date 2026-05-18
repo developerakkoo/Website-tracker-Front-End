@@ -15,6 +15,7 @@ export class SessionsHubPage implements OnInit, OnDestroy {
   sessions: ProjectSession[] = [];
   loading = true;
   error = '';
+  readonly skeletonSlots = [1, 2, 3, 4, 5];
   private sub = new Subscription();
 
   constructor(
@@ -53,26 +54,21 @@ export class SessionsHubPage implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Could not load sessions.';
+        this.error = 'Could not load recordings. Please try again.';
         this.sessions = [];
         this.loading = false;
       },
     });
   }
 
+  trackBySessionId(_index: number, s: ProjectSession): string {
+    return s.sessionId;
+  }
+
   openReplay(session: ProjectSession): void {
     const id = session.sessionId || (session as { _id?: string })._id;
     if (id) {
       void this.router.navigate(['/replay', id]);
-    }
-  }
-
-  formatDate(d: string | Date | undefined): string {
-    if (!d) return '—';
-    try {
-      return new Date(d).toLocaleString();
-    } catch {
-      return '—';
     }
   }
 }

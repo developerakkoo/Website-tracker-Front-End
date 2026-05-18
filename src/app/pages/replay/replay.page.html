@@ -1,9 +1,12 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/projects"></ion-back-button>
+      <ion-back-button defaultHref="/sessions"></ion-back-button>
     </ion-buttons>
-    <ion-title>Session replay</ion-title>
+    <ion-title>
+      Recording
+      <p class="replay-toolbar-sub" *ngIf="session && !loading">{{ headerSubtitle }}</p>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -11,11 +14,12 @@
   <div *ngIf="loading" class="wt-page-padding">
     <ion-skeleton-text animated class="replay-skel-line"></ion-skeleton-text>
     <ion-skeleton-text animated class="replay-skel-block"></ion-skeleton-text>
-    <p class="wt-text-muted">Loading session…</p>
+    <p class="wt-text-muted">Loading recording…</p>
   </div>
 
-  <div *ngIf="error && !loading" class="wt-page-padding">
+  <div *ngIf="error && !loading" class="wt-page-padding replay-empty">
     <ion-text color="danger">{{ error }}</ion-text>
+    <ion-button expand="block" class="ion-margin-top" (click)="goToRecordings()">Back to recordings</ion-button>
   </div>
 
   <ng-container *ngIf="session && !loading && !error">
@@ -23,40 +27,79 @@
       *ngIf="!wideViewport"
       class="replay-segment"
       [(ngModel)]="replayTab"
-      aria-label="Replay section">
+      aria-label="Recording section">
       <ion-segment-button value="player">
-        <ion-label>Player</ion-label>
+        <ion-label>Watch</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="info">
-        <ion-label>Info</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="events">
-        <ion-label>Events</ion-label>
+      <ion-segment-button value="summary">
+        <ion-label>Summary</ion-label>
       </ion-segment-button>
     </ion-segment>
 
     <div class="replay-shell wt-page-padding">
       <aside
-        *ngIf="wideViewport || replayTab === 'info'"
-        class="replay-aside replay-aside--info">
-        <app-card title="Session" subtitle="Device & recording">
+        *ngIf="wideViewport || replayTab === 'summary'"
+        class="replay-aside replay-aside--summary">
+        <app-card title="Visit summary" subtitle="Overview of this visit">
           <dl class="info-dl">
-            <dt>Session ID</dt>
-            <dd class="mono">{{ sessionId }}</dd>
-            <dt *ngIf="session.duration != null">Duration</dt>
-            <dd *ngIf="session.duration != null">{{ session.duration }}s</dd>
-            <dt>Events</dt>
-            <dd>{{ events.length }}</dd>
-            <dt *ngIf="deviceLabel">Device</dt>
-            <dd *ngIf="deviceLabel">{{ deviceLabel }}</dd>
-            <dt *ngIf="currentUrlDisplay">URL</dt>
-            <dd *ngIf="currentUrlDisplay" class="url-dd">{{ currentUrlDisplay }}</dd>
+            <dt>When</dt>
+            <dd>{{ formatRelativeTime(session.startedAt) }}</dd>
+            <dt>Length</dt>
+            <dd>{{ visitDurationLabel }}</dd>
+            <dt>Pages visited</dt>
+            <dd>{{ pagesVisitedLabel }}</dd>
+            <dt>Activity</dt>
+            <dd>{{ interactionsLabel }}</dd>
+            <dt>Device</dt>
+            <dd>
+              {{ deviceFriendlyLabel }}
+              <span *ngIf="screenSizeLabel" class="info-dl__secondary"> · {{ screenSizeLabel }}</span>
+            </dd>
+            <dt>Starting page</dt>
+            <dd class="url-dd">{{ startingPageLabel }}</dd>
           </dl>
+          <ion-button fill="clear" size="small" (click)="showSessionId = !showSessionId">
+            {{ showSessionId ? 'Hide' : 'Show' }} support ID
+          </ion-button>
+          <p *ngIf="showSessionId" class="mono support-id">{{ sessionId }}</p>
+        </app-card>
+
+        <app-card title="What happened" subtitle="Activity during the visit">
+          <div class="activity-scroller">
+            <p *ngIf="activityTimeline.length === 0" class="wt-text-muted">No activity recorded.</p>
+            <ul *ngIf="visibleTimeline.length > 0" class="activity-list">
+              <li *ngFor="let row of visibleTimeline; let i = index" class="activity-row">
+                <ion-icon [name]="row.icon" class="activity-row__icon" aria-hidden="true"></ion-icon>
+                <div class="activity-row__body">
+                  <span class="activity-row__label">{{ row.label }}</span>
+                  <span class="activity-row__time">{{ row.offsetLabel }}</span>
+                  <p *ngIf="expandedTimelineIndex === i && row.detail" class="activity-row__detail">
+                    {{ row.detail }}
+                  </p>
+                  <ion-button
+                    *ngIf="row.detail"
+                    fill="clear"
+                    size="small"
+                    class="activity-row__more"
+                    (click)="toggleTimelineDetail(i)">
+                    {{ expandedTimelineIndex === i ? 'Less' : 'More' }}
+                  </ion-button>
+                </div>
+              </li>
+            </ul>
+            <ion-button
+              *ngIf="activityTimeline.length > 20"
+              fill="clear"
+              size="small"
+              (click)="toggleShowAllTimeline()">
+              {{ showAllTimeline ? 'Show less' : 'Show more' }}
+            </ion-button>
+          </div>
         </app-card>
       </aside>
 
       <main *ngIf="wideViewport || replayTab === 'player'" class="replay-main">
-        <div class="controls-toolbar">
+        <div class="controls-toolbar" aria-label="Playback controls">
           <ion-button (click)="play()" [disabled]="isPlaying || events.length === 0" size="small">
             <ion-icon slot="icon-only" name="play" aria-hidden="true"></ion-icon>
           </ion-button>
@@ -75,7 +118,7 @@
             <ion-icon slot="start" name="play-skip-forward"></ion-icon>
             Next page
           </ion-button>
-          <span class="speed-group">
+          <span class="speed-group" aria-label="Playback speed">
             <ion-button [fill]="speed === 1 ? 'solid' : 'outline'" size="small" (click)="setSpeed(1)">1×</ion-button>
             <ion-button [fill]="speed === 2 ? 'solid' : 'outline'" size="small" (click)="setSpeed(2)">2×</ion-button>
             <ion-button [fill]="speed === 4 ? 'solid' : 'outline'" size="small" (click)="setSpeed(4)">4×</ion-button>
@@ -85,7 +128,7 @@
         <div *ngIf="multiPageMode" class="replay-meta">
           <ion-text color="medium"><strong>{{ pageIndicator }}</strong></ion-text>
           <div class="current-url" *ngIf="currentUrlDisplay">
-            <ion-text color="medium"><small>{{ currentUrlDisplay }}</small></ion-text>
+            <ion-text color="medium"><small>{{ pageTitle(currentUrlDisplay) }}</small></ion-text>
           </div>
           <div class="timeline-bar" role="navigation" aria-label="Pages timeline">
             <button
@@ -94,20 +137,17 @@
               class="timeline-segment"
               [class.active]="seg.pageIndex === currentReplayPageIndex"
               [style.flex-grow]="seg.widthPct"
-              [title]="seg.url || ('Page ' + (seg.pageIndex + 1))"
+              [title]="pageTitle(seg.url) || ('Page ' + (seg.pageIndex + 1))"
               (click)="jumpToPageSegment(seg.pageIndex)">
             </button>
           </div>
         </div>
 
         <div *ngIf="!hasSnapshot" class="ion-padding-vertical no-snapshot-message">
-          <ion-text color="medium">No snapshot for this session. Events still play (e.g. scroll).</ion-text>
+          <ion-text color="medium">Page preview unavailable; playback still shows movement.</ion-text>
         </div>
-        <div *ngIf="deviceLabel && !multiPageMode" class="device-label-row">
-          <ion-badge color="medium">{{ deviceLabel }}</ion-badge>
-        </div>
-        <div *ngIf="!hasViewport && session" class="viewport-fallback-message">
-          <ion-text color="medium"><small>Viewport unknown; positions approximate.</small></ion-text>
+        <div *ngIf="!multiPageMode" class="device-label-row">
+          <ion-badge color="primary">{{ deviceBadgeLabel }}</ion-badge>
         </div>
 
         <div class="iframe-wrapper" #viewportContainer [class.fill-mode]="!hasViewport">
@@ -122,24 +162,11 @@
               [style.height.px]="hasViewport ? replayViewportHeight : null"
               [style.transform]="hasViewport ? 'scale(' + replayScale + ')' : 'none'"
               style="transform-origin: top left">
-              <iframe #replayFrame sandbox="allow-same-origin" title="Replay"></iframe>
+              <iframe #replayFrame sandbox="allow-same-origin" title="Recording playback"></iframe>
             </div>
           </div>
         </div>
       </main>
-
-      <aside
-        *ngIf="wideViewport || replayTab === 'events'"
-        class="replay-aside replay-aside--events">
-        <app-card title="Events" [subtitle]="events.length + ' recorded'">
-          <div class="events-scroller">
-            <p *ngIf="events.length === 0" class="wt-text-muted">No events.</p>
-            <ul *ngIf="events.length > 0" class="event-lines">
-              <li *ngFor="let ev of events | slice : 0 : 400">{{ formatEventLine(ev) }}</li>
-            </ul>
-          </div>
-        </app-card>
-      </aside>
     </div>
   </ng-container>
 </ion-content>

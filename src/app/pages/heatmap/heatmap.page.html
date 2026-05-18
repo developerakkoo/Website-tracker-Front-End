@@ -1,101 +1,225 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header>
+  <ion-toolbar class="heatmap-toolbar-row">
     <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
       <ion-back-button [defaultHref]="'/projects/details/' + projectId"></ion-back-button>
+      <div class="heatmap-title-block">
+        <span class="heatmap-title">Heatmaps</span>
+        <span class="heatmap-subtitle">{{ projectName }}</span>
+      </div>
     </ion-buttons>
-    <ion-title>{{ projectName }} · Heatmaps</ion-title>
+
+    <ion-buttons slot="center" class="heatmap-url-center">
+      <ion-button
+        id="url-trigger"
+        fill="outline"
+        size="small"
+        class="url-select-btn"
+        (click)="openUrlPopover()"
+        [disabled]="loadingUrls || urls.length === 0">
+        <ion-icon slot="start" name="link-outline"></ion-icon>
+        {{ truncateUrl(selectedUrl) }}
+      </ion-button>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        aria-label="Export PNG"
+        [disabled]="isEmpty || exporting"
+        (click)="exportPng()">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" aria-label="Refresh" (click)="refresh()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="heatmap-layout wt-page-padding">
-    <div class="heatmap-toolbar wt-surface-panel">
-      <ion-grid class="ion-no-padding">
-        <ion-row>
-          <ion-col size="12" sizeMd="4">
-            <ion-item lines="none" class="heatmap-field">
-              <ion-label position="stacked">URL</ion-label>
-              <ion-select
-                [value]="selectedUrl"
-                (ionChange)="selectedUrl = $any($event).detail.value; onUrlChange()"
-                [disabled]="loadingUrls"
-                interface="action-sheet"
-                [interfaceOptions]="{ header: 'Page URL' }">
-                <ion-select-option *ngFor="let u of urls" [value]="u">{{ u }}</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </ion-col>
-          <ion-col size="12" sizeMd="5">
-            <ion-item lines="none" class="heatmap-field">
-              <ion-label position="stacked">Type</ion-label>
-              <ion-segment [value]="selectedType" (ionChange)="selectedType = $any($event).detail.value; onTypeChange()">
-                <ion-segment-button value="click">
-                  <ion-label>Click</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="scroll">
-                  <ion-label>Scroll</ion-label>
-                </ion-segment-button>
-                <ion-segment-button value="attention">
-                  <ion-label>Attention</ion-label>
-                </ion-segment-button>
-              </ion-segment>
-            </ion-item>
-          </ion-col>
-          <ion-col size="12" sizeMd="3">
-            <ion-item lines="none" class="heatmap-field">
-              <ion-label position="stacked">Device</ion-label>
-              <ion-select
-                [value]="selectedDevice"
-                (ionChange)="selectedDevice = $any($event).detail.value; onDeviceChange()"
-                interface="action-sheet">
-                <ion-select-option value="all">All</ion-select-option>
-                <ion-select-option value="desktop">Desktop</ion-select-option>
-                <ion-select-option value="android">Android</ion-select-option>
-                <ion-select-option value="ios">iOS</ion-select-option>
-              </ion-select>
-            </ion-item>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+<ion-popover trigger="url-trigger" [isOpen]="urlPopoverOpen" (didDismiss)="urlPopoverOpen = false">
+  <ng-template>
+    <ion-content class="url-popover-content">
+      <ion-searchbar
+        [(ngModel)]="urlSearch"
+        debounce="200"
+        placeholder="Search URLs…"
+        aria-label="Search URLs">
+      </ion-searchbar>
+      <ion-list *ngIf="filteredUrls.length > 0">
+        <ion-item
+          button
+          *ngFor="let u of filteredUrls; trackBy: trackByUrl"
+          (click)="selectUrl(u)"
+          [class.url-item--active]="u === selectedUrl">
+          <ion-label class="url-item-label">{{ u }}</ion-label>
+        </ion-item>
+      </ion-list>
+      <p *ngIf="filteredUrls.length === 0" class="url-popover-empty">No matching URLs</p>
+    </ion-content>
+  </ng-template>
+</ion-popover>
+
+<ion-content [fullscreen]="true" class="heatmap-content">
+  <div class="heatmap-control-bar">
+    <ion-segment [value]="selectedType" (ionChange)="selectedType = $any($event).detail.value; onTypeChange()">
+      <ion-segment-button value="click"><ion-label>Click</ion-label></ion-segment-button>
+      <ion-segment-button value="scroll"><ion-label>Scroll</ion-label></ion-segment-button>
+      <ion-segment-button value="attention"><ion-label>Attention</ion-label></ion-segment-button>
+    </ion-segment>
+
+    <div class="device-chip">
+      <ion-select
+        [value]="selectedDevice"
+        (ionChange)="selectedDevice = $any($event).detail.value; onDeviceChange()"
+        interface="popover"
+        aria-label="Device filter">
+        <ion-select-option value="all">All</ion-select-option>
+        <ion-select-option value="desktop">Desktop</ion-select-option>
+        <ion-select-option value="android">Android</ion-select-option>
+        <ion-select-option value="ios">iOS</ion-select-option>
+      </ion-select>
     </div>
 
-    <div *ngIf="loadingUrls" class="ion-padding">
-      <ion-spinner></ion-spinner>
-      <p class="wt-text-muted">Loading URLs…</p>
-    </div>
-    <div *ngIf="error && !loading" class="ion-padding">
-      <ion-text color="danger">{{ error }}</ion-text>
-    </div>
-    <div *ngIf="!loadingUrls && urls.length === 0 && !error" class="ion-padding">
-      <ion-text color="medium">No heatmap data yet. Visit your tracked site to generate events.</ion-text>
+    <div class="control-opacity">
+      <span class="control-label">Overlay</span>
+      <ion-range
+        [min]="0.2"
+        [max]="1"
+        [step]="0.05"
+        [value]="overlayOpacity"
+        (ionInput)="onOpacityChange(+$any($event).detail.value)"
+        aria-label="Overlay opacity">
+      </ion-range>
     </div>
 
-    <div *ngIf="selectedUrl && !loadingUrls" class="heatmap-body">
-      <div class="heatmap-viewer-wrap">
-        <div class="viewer-wrapper">
-          <div class="iframe-container">
-            <iframe #iframe [src]="iframeSrc" title="Page preview"></iframe>
-            <canvas #canvas class="heatmap-canvas"></canvas>
-          </div>
-          <div *ngIf="loading" class="overlay-loading">
-            <ion-spinner></ion-spinner>
-          </div>
-        </div>
+    <ion-segment [value]="colorScheme" (ionChange)="colorScheme = $any($event).detail.value; onColorSchemeChange()">
+      <ion-segment-button value="hot"><ion-label>Hot</ion-label></ion-segment-button>
+      <ion-segment-button value="gray"><ion-label>Gray</ion-label></ion-segment-button>
+      <ion-segment-button value="green"><ion-label>Green</ion-label></ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="isLoading" class="heatmap-skeleton">
+    <div class="heatmap-main heatmap-main--skeleton">
+      <div class="skeleton-viewer">
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 100%;"></ion-skeleton-text>
       </div>
-
-      <aside *ngIf="selectedType === 'click' && topClicked.length > 0" class="heatmap-sidebar">
-        <app-card title="Top clicked areas" subtitle="By frequency">
-          <ion-list lines="none">
-            <ion-item *ngFor="let a of topClicked; let i = index">
-              <ion-label>
-                <h3>#{{ i + 1 }} — ({{ a.x }}%, {{ a.y }}%)</h3>
-                <p>{{ a.count }} clicks</p>
-              </ion-label>
-            </ion-item>
-          </ion-list>
-        </app-card>
-      </aside>
+      <div class="heatmap-sidebar heatmap-sidebar--skeleton">
+        <ion-skeleton-text [animated]="true" class="stat-skeleton"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="stat-skeleton"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="stat-skeleton"></ion-skeleton-text>
+      </div>
     </div>
   </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="ion-padding">
+    <ion-text color="danger">{{ error }}</ion-text>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="isEmpty && !isLoading && !error" class="empty-state">
+    <svg class="empty-state__icon" viewBox="0 0 80 80" width="80" height="80" aria-hidden="true">
+      <circle cx="40" cy="40" r="36" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2"/>
+      <path d="M28 42h24M34 32l6 10 6-10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="40" cy="52" r="3" fill="currentColor" opacity="0.5"/>
+    </svg>
+    <h2 class="empty-state__title">No heatmap data yet</h2>
+    <p class="empty-state__subtitle">
+      Start tracking by adding the snippet to your website, then interact with your pages for at least 10 seconds.
+    </p>
+    <ion-button fill="outline" (click)="copySnippet()">Copy Snippet</ion-button>
+  </div>
+
+  <!-- Main viewer -->
+  <div *ngIf="!isEmpty && !isLoading" class="heatmap-main">
+    <div class="heatmap-viewer-col">
+      <div #viewerWrapper class="viewer-wrapper">
+        <div class="iframe-container" *ngIf="selectedType !== 'scroll'">
+          <iframe #iframe [src]="iframeSrc" title="Page preview"></iframe>
+        </div>
+        <canvas #canvas class="heatmap-canvas"></canvas>
+        <div *ngIf="loading" class="overlay-loading">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+      </div>
+    </div>
+
+    <aside class="heatmap-sidebar heatmap-sidebar--desktop">
+      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    </aside>
+  </div>
+
+  <ion-fab *ngIf="!isEmpty && !isLoading" slot="fixed" vertical="bottom" horizontal="end" class="heatmap-fab">
+    <ion-fab-button (click)="statsModalOpen = true" aria-label="View stats">
+      <ion-icon name="stats-chart-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
+
+<ion-modal [isOpen]="statsModalOpen" (didDismiss)="statsModalOpen = false">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Stats</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="statsModalOpen = false">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="heatmap-sidebar heatmap-sidebar--modal">
+      <ng-container *ngTemplateOutlet="sidebarContent"></ng-container>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ng-template #sidebarContent>
+  <div class="stats-row" *ngIf="stats">
+    <div class="stat-card">
+      <span class="stat-card__label">Total Events</span>
+      <span class="stat-card__value">{{ stats.totalEvents }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Sessions Contributing</span>
+      <span class="stat-card__value">{{ stats.sessionCount }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Last Updated</span>
+      <span class="stat-card__value stat-card__value--sm">{{ formatLastUpdated(stats.lastUpdated) }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="selectedType === 'click' || selectedType === 'attention'" class="sidebar-section">
+    <h3 class="sidebar-section__title">Top interactions</h3>
+    <ul class="interaction-list" *ngIf="topInteractions.length > 0">
+      <li *ngFor="let item of topInteractions; trackBy: trackByInteraction; let i = index" class="interaction-item">
+        <span class="interaction-item__rank">#{{ i + 1 }}</span>
+        <div class="interaction-item__body">
+          <span class="interaction-item__coords">X: {{ item.x }}% Y: {{ item.y }}%</span>
+          <div class="interaction-bar-track">
+            <div
+              class="interaction-bar-fill"
+              [style.width.%]="(item.count / topInteractionMax) * 100">
+            </div>
+          </div>
+        </div>
+        <span class="interaction-item__count">{{ item.count }}</span>
+      </li>
+    </ul>
+    <p *ngIf="topInteractions.length === 0" class="sidebar-muted">No interaction data for this view.</p>
+  </div>
+
+  <div *ngIf="selectedType === 'scroll'" class="sidebar-section">
+    <h3 class="sidebar-section__title">Scroll depth</h3>
+    <ul class="scroll-depth-list" *ngIf="scrollBands.length > 0">
+      <li *ngFor="let band of scrollBands; trackBy: trackByBand" class="scroll-depth-row">
+        <span class="scroll-depth-row__label">{{ band.label }}</span>
+        <div class="scroll-depth-row__track">
+          <div class="scroll-depth-row__fill" [style.width.%]="band.percent"></div>
+        </div>
+        <span class="scroll-depth-row__value">{{ band.value }}</span>
+      </li>
+    </ul>
+  </div>
+</ng-template>

@@ -1,18 +1,33 @@
-.sessions-hub__intro {
-  margin: 0 0 var(--wt-space-16);
+.toolbar-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ion-color-medium);
 }
 
-.sessions-hub__state {
-  display: flex;
-  justify-content: center;
-  padding: var(--wt-space-32);
+.sessions-hub__intro {
+  margin: 0 0 var(--wt-space-16, 16px);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ion-text-color);
+}
+
+.sessions-hub__error-block {
+  text-align: center;
+  padding: var(--wt-space-24, 24px);
 }
 
 .sessions-hub__error {
   color: var(--ion-color-danger);
-  margin-bottom: var(--wt-space-16);
+  margin-bottom: 12px;
 }
 
-.sessions-list {
-  background: transparent;
+.recordings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

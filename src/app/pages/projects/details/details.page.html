@@ -71,6 +71,55 @@
           </ion-button>
         </app-card>
 
+        <app-card title="Conversion goals" subtitle="Track WhatsApp and other button clicks on your site.">
+          <div *ngIf="goalsLoading" class="goals-list-skeleton">
+            <ion-skeleton-text [animated]="true" style="height: 48px; margin-bottom: 8px;"></ion-skeleton-text>
+          </div>
+
+          <div *ngIf="!goalsLoading && goals.length === 0" class="details-empty">
+            <p class="wt-text-muted">No goals yet. Add a goal and tag buttons with <code>data-wt-goal</code>.</p>
+          </div>
+
+          <ul *ngIf="!goalsLoading && goals.length" class="goals-manage-list">
+            <li *ngFor="let g of goals" class="goals-manage-item">
+              <div class="goals-manage-item__main">
+                <strong>{{ g.name }}</strong>
+                <span class="goal-key">{{ g.key }}</span>
+                <span class="wt-text-muted goals-manage-item__stats">{{ g.clicks7d }} clicks (7d)</span>
+              </div>
+              <div class="goals-manage-item__actions">
+                <ion-button fill="clear" size="small" (click)="copyGoalSnippet(g)" aria-label="Copy snippet">
+                  <ion-icon slot="icon-only" name="copy-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="confirmDeleteGoal(g)" aria-label="Delete">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </li>
+          </ul>
+
+          <div class="goals-manage-actions">
+            <ion-button expand="block" fill="outline" (click)="presentAddGoal('whatsapp')">
+              <ion-icon slot="start" name="logo-whatsapp"></ion-icon>
+              Add WhatsApp preset
+            </ion-button>
+            <ion-button expand="block" class="wt-btn-follow" (click)="presentAddGoal()">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Add custom goal
+            </ion-button>
+            <ion-button expand="block" fill="clear" [routerLink]="['/goals', projectId]">
+              View goal analytics
+            </ion-button>
+          </div>
+        </app-card>
+
+        <app-card title="Analytics" subtitle="Sessions, pageviews, devices, and engagement for this project.">
+          <ion-button expand="block" class="wt-btn-follow" [routerLink]="['/analytics', projectId]">
+            <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
+            View analytics
+          </ion-button>
+        </app-card>
+
         <app-card title="Heatmaps" subtitle="Click, scroll, and attention overlays by URL.">
           <ion-button expand="block" class="wt-btn-follow" [routerLink]="['/heatmaps', projectId]">
             <ion-icon slot="start" name="flame-outline"></ion-icon>
@@ -105,32 +154,32 @@
           </ion-button>
         </app-card>
 
-        <app-card title="Sessions" subtitle="Recorded sessions with replay.">
-          <div *ngIf="sessionsLoading" class="details-loading">
-            <ion-spinner></ion-spinner>
-            <p class="wt-text-muted">Loading sessions…</p>
+        <app-card title="Recent recordings" subtitle="Latest visits you can watch.">
+          <div *ngIf="sessionsLoading" class="details-recordings-skeleton">
+            <app-session-recording-card *ngFor="let i of [1,2,3]" [skeleton]="true"></app-session-recording-card>
           </div>
 
           <div *ngIf="!sessionsLoading && sessions.length === 0" class="details-empty">
             <p class="wt-text-muted">
-              No sessions yet. Install the tracker on your site and visit it to record sessions.
+              No recordings yet. When visitors interact with your site, their visits will show up here.
             </p>
           </div>
 
-          <ion-list *ngIf="!sessionsLoading && sessions.length > 0" class="wt-list-interactive sessions-list" lines="none">
-            <ion-item *ngFor="let s of sessions" [button]="true" (click)="openReplay(s.sessionId)">
-              <ion-label class="session-label">
-                <div class="session-title">{{ s.url || 'Session' }}</div>
-                <div class="session-meta">
-                  <span>{{ formatSessionDate(s.startedAt) }}</span>
-                  <span class="meta-dot">·</span>
-                  <span>{{ s.eventCount }} events</span>
-                  <span *ngIf="s.deviceType" class="device-badge">{{ formatDeviceType(s.deviceType) }}</span>
-                </div>
-              </ion-label>
-              <ion-icon slot="end" class="replay-icon" name="play-circle-outline" aria-hidden="true"></ion-icon>
-            </ion-item>
-          </ion-list>
+          <div *ngIf="!sessionsLoading && sessions.length > 0" class="details-recordings-list">
+            <app-session-recording-card
+              *ngFor="let s of recentSessions"
+              [session]="s"
+              (play)="openReplayFromCard($event)">
+            </app-session-recording-card>
+            <ion-button
+              *ngIf="sessions.length > 5"
+              expand="block"
+              fill="clear"
+              routerLink="/sessions"
+              class="view-all-recordings">
+              View all recordings
+            </ion-button>
+          </div>
         </app-card>
       </section>
     </div>

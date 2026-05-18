@@ -1,0 +1,135 @@
+<ion-header>
+  <ion-toolbar class="goals-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <div class="goals-title-block">
+        <span class="goals-title">Conversion goals</span>
+        <span class="goals-subtitle">{{ projectName }}</span>
+      </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-segment [value]="selectedDaysKey" (ionChange)="onDaysChange($any($event).detail.value)">
+        <ion-segment-button value="7D"><ion-label>7D</ion-label></ion-segment-button>
+        <ion-segment-button value="30D"><ion-label>30D</ion-label></ion-segment-button>
+        <ion-segment-button value="90D"><ion-label>90D</ion-label></ion-segment-button>
+      </ion-segment>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="goals-content">
+  <div class="wt-page-padding goals-page">
+    <div *ngIf="loadFailed" class="goals-error">
+      <p>Failed to load goal analytics.</p>
+      <ion-button fill="outline" size="small" (click)="load()">Try again</ion-button>
+    </div>
+
+    <section class="goals-section" *ngIf="!loadFailed">
+      <div class="kpi-grid">
+        <ion-card class="goals-card kpi-card">
+          <ion-card-content>
+            <ng-container *ngIf="!isLoading; else kpiSkel">
+              <div class="kpi-card__head">
+                <ion-icon name="finger-print-outline"></ion-icon>
+                <span class="stat-label">Total clicks</span>
+              </div>
+              <div class="stat-value">{{ summary?.totalClicks ?? 0 }}</div>
+            </ng-container>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="goals-card kpi-card">
+          <ion-card-content>
+            <ng-container *ngIf="!isLoading; else kpiSkel">
+              <div class="kpi-card__head">
+                <ion-icon name="trophy-outline"></ion-icon>
+                <span class="stat-label">Top goal</span>
+              </div>
+              <div class="stat-value stat-value--sm">{{ summary?.topGoal?.name || '—' }}</div>
+              <p class="stat-meta" *ngIf="summary?.topGoal">{{ summary!.topGoal!.clicks }} clicks</p>
+            </ng-container>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="goals-card kpi-card">
+          <ion-card-content>
+            <ng-container *ngIf="!isLoading; else kpiSkel">
+              <div class="kpi-card__head">
+                <ion-icon name="trending-up-outline"></ion-icon>
+                <span class="stat-label">Session conversion</span>
+              </div>
+              <div class="stat-value">{{ formatPct(summary?.conversionRate ?? 0) }}</div>
+            </ng-container>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </section>
+
+    <section class="goals-section goals-card" *ngIf="!loadFailed">
+      <h2 class="section-title">Goals performance</h2>
+      <div *ngIf="isLoading" class="table-skeleton">
+        <ion-skeleton-text [animated]="true" style="height: 120px;"></ion-skeleton-text>
+      </div>
+      <div *ngIf="!isLoading && (!summary?.goals?.length)" class="goals-empty">
+        <p>No goals yet. Add conversion goals from your project settings to track button clicks like WhatsApp.</p>
+        <ion-button fill="outline" [routerLink]="['/projects/details', projectId]">Open project</ion-button>
+      </div>
+      <div class="goals-table-wrap" *ngIf="!isLoading && summary?.goals?.length">
+        <table class="goals-table">
+          <thead>
+            <tr>
+              <th>Goal</th>
+              <th>Clicks</th>
+              <th>Unique visitors</th>
+              <th>% of sessions</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let g of summary!.goals"
+              [class.goals-table__row--active]="g.key === selectedGoalKey"
+              (click)="onGoalSelect(g.key)">
+              <td>
+                <strong>{{ g.name }}</strong>
+                <span class="goal-key">{{ g.key }}</span>
+              </td>
+              <td>{{ g.clicks }}</td>
+              <td>{{ g.uniqueSessions }}</td>
+              <td>{{ formatPct(g.sessionRate) }}</td>
+              <td>
+                <ion-button fill="clear" size="small" (click)="copySnippet(g.key); $event.stopPropagation()">
+                  Copy tag
+                </ion-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="goals-section goals-card chart-section" *ngIf="selectedGoalKey && !isLoading">
+      <h2 class="section-title">Clicks over time — {{ selectedGoalKey }}</h2>
+      <app-line-chart
+        *ngIf="chartData.length"
+        [data]="chartData"
+        [xLabelStep]="xLabelStep"
+        label="Clicks">
+      </app-line-chart>
+      <p *ngIf="!chartData.length" class="wt-text-muted">No clicks in this period.</p>
+    </section>
+
+    <section class="goals-section goals-card" *ngIf="selectedGoalKey && pages.length">
+      <h2 class="section-title">Top pages</h2>
+      <ul class="pages-list">
+        <li *ngFor="let p of pages">
+          <span class="pages-list__url">{{ p.url }}</span>
+          <span class="pages-list__count">{{ p.clicks }}</span>
+        </li>
+      </ul>
+    </section>
+
+    <ng-template #kpiSkel>
+      <ion-skeleton-text [animated]="true" style="width: 60%; height: 12px;"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" style="width: 50%; height: 28px; margin-top: 8px;"></ion-skeleton-text>
+    </ng-template>
+  </div>
+</ion-content>

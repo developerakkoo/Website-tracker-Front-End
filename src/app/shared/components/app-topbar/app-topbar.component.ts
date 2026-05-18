@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { MenuController } from '@ionic/angular';
+import { AlertController, MenuController } from '@ionic/angular';
 import { Subscription, filter } from 'rxjs';
+import { Auth, AuthUser } from 'src/app/services/auth';
 import { ProjectContextService, ProjectSummary } from 'src/app/services/project-context.service';
 
 @Component({
@@ -16,13 +17,17 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
   searchOpen = false;
   searchQuery = '';
   mobileProjectOpen = false;
+  accountPopoverOpen = false;
+  currentUser: AuthUser | null = null;
 
   private sub = new Subscription();
 
   constructor(
     private projectContext: ProjectContextService,
     private router: Router,
-    private menuCtrl: MenuController
+    private menuCtrl: MenuController,
+    private auth: Auth,
+    private alertCtrl: AlertController
   ) {}
 
   ngOnInit(): void {
@@ -30,6 +35,12 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
     void this.projectContext.refreshProjects().then((list) => {
       this.projects = list;
     });
+
+    this.sub.add(
+      this.auth.currentUser$.subscribe((u) => {
+        this.currentUser = u;
+      })
+    );
 
     this.sub.add(
       this.projectContext.activeProject$.subscribe((p) => {
@@ -75,6 +86,25 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
     if (!this.searchQuery.trim()) return;
     void this.router.navigate(['/projects']);
     this.searchOpen = false;
+  }
+
+  async confirmLogout(): Promise<void> {
+    this.accountPopoverOpen = false;
+    const alert = await this.alertCtrl.create({
+      header: 'Sign out?',
+      message: 'You will need to sign in again to access your projects.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Sign out',
+          role: 'destructive',
+          handler: () => {
+            void this.auth.logout();
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   pageTitle(): string {

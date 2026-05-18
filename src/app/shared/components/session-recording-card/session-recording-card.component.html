@@ -1,0 +1,26 @@
+<ion-card *ngIf="!skeleton" class="recording-card" button (click)="onPlay()" [attr.title]="fullUrl">
+  <ion-card-content>
+    <div class="recording-card__row">
+      <ion-icon [name]="deviceIcon" class="recording-card__device-icon" aria-hidden="true"></ion-icon>
+      <div class="recording-card__text">
+        <h3 class="recording-title">{{ title }}</h3>
+        <p class="recording-meta" *ngIf="pathHint">{{ pathHint }}</p>
+        <p class="recording-meta recording-meta--secondary">
+          {{ relativeTime }} · {{ durationLabel }} · {{ pagesText }}
+        </p>
+      </div>
+      <ion-button fill="clear" size="small" class="recording-card__watch" (click)="onPlay(); $event.stopPropagation()">
+        <ion-icon slot="start" name="play-circle"></ion-icon>
+        Watch
+      </ion-button>
+    </div>
+  </ion-card-content>
+</ion-card>
+
+<ion-card *ngIf="skeleton" class="recording-card recording-card--skeleton">
+  <ion-card-content>
+    <ion-skeleton-text [animated]="true" style="width: 70%; height: 16px;"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px; margin-top: 8px;"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="true" style="width: 90%; height: 12px; margin-top: 8px;"></ion-skeleton-text>
+  </ion-card-content>
+</ion-card>

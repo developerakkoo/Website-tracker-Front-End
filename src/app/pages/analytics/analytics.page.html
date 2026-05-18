@@ -1,0 +1,223 @@
+<ion-header>
+  <ion-toolbar class="analytics-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+      <div class="analytics-title-block">
+        <span class="analytics-title">Analytics</span>
+        <span class="analytics-subtitle">{{ projectName }}</span>
+      </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-segment [value]="selectedDaysKey" (ionChange)="onDaysChange($any($event).detail.value)">
+        <ion-segment-button value="7D"><ion-label>7D</ion-label></ion-segment-button>
+        <ion-segment-button value="30D"><ion-label>30D</ion-label></ion-segment-button>
+        <ion-segment-button value="90D"><ion-label>90D</ion-label></ion-segment-button>
+      </ion-segment>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="analytics-content">
+  <div class="wt-page-padding analytics-page">
+    <ion-note *ngIf="hasPartialError" color="warning" class="partial-banner">
+      Some metrics failed to load
+    </ion-note>
+
+    <section class="analytics-section">
+      <div class="kpi-grid">
+        <ion-card *ngFor="let card of kpiCards" class="analytics-card kpi-card">
+          <ion-card-content>
+            <ng-container *ngIf="!isLoading; else kpiSkel">
+              <div class="kpi-card__head">
+                <ion-icon [name]="card.icon"></ion-icon>
+                <span class="stat-label">{{ card.label }}</span>
+              </div>
+              <div class="stat-value">{{ kpiValue(card.key) }}</div>
+              <div
+                *ngIf="card.changeKey"
+                [class]="formatChange(kpiChange(card.changeKey)).class">
+                {{ formatChange(kpiChange(card.changeKey)).text }}
+              </div>
+            </ng-container>
+            <ng-template #kpiSkel>
+              <ion-skeleton-text [animated]="true" style="width: 60%; height: 12px;"></ion-skeleton-text>
+              <ion-skeleton-text [animated]="true" style="width: 80%; height: 28px; margin-top: 8px;"></ion-skeleton-text>
+            </ng-template>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div class="pulse-badges" *ngIf="overview && !isLoading">
+        <span class="pulse-badge pulse-badge--today">
+          <span class="pulse-dot pulse-dot--success"></span>
+          {{ overview.activeToday }} active today
+        </span>
+        <span class="pulse-badge pulse-badge--week">
+          <span class="pulse-dot pulse-dot--primary"></span>
+          {{ overview.activeThisWeek }} active this week
+        </span>
+      </div>
+    </section>
+
+    <section class="analytics-section analytics-card chart-section">
+      <div class="section-header">
+        <h2 class="section-title">{{ timeseriesTitle }}</h2>
+        <ion-segment
+          class="metric-chips"
+          [value]="timeseriesMetric"
+          (ionChange)="onTimeseriesMetricChange($any($event).detail.value)">
+          <ion-segment-button value="sessions"><ion-label>Sessions</ion-label></ion-segment-button>
+          <ion-segment-button value="pageviews"><ion-label>Pageviews</ion-label></ion-segment-button>
+          <ion-segment-button value="events"><ion-label>Events</ion-label></ion-segment-button>
+        </ion-segment>
+      </div>
+      <div *ngIf="isLoading" class="chart-skeleton">
+        <ion-skeleton-text [animated]="true" style="width: 100%; height: 220px;"></ion-skeleton-text>
+      </div>
+      <app-line-chart
+        *ngIf="!isLoading && timeseries?.data"
+        [data]="timeseries!.data"
+        [xLabelStep]="xLabelStep"
+        [label]="timeseriesTitle">
+      </app-line-chart>
+    </section>
+
+    <section class="analytics-two-col">
+      <ion-card class="analytics-card">
+        <ion-card-header>
+          <div class="section-header section-header--card">
+            <h2 class="section-title">Top Pages</h2>
+            <ion-select
+              [value]="pagesMetric"
+              (ionChange)="onPagesMetricChange($any($event).detail.value)"
+              interface="popover"
+              aria-label="Page metric">
+              <ion-select-option value="views">Views</ion-select-option>
+              <ion-select-option value="entries">Entry Pages</ion-select-option>
+              <ion-select-option value="exits">Exit Pages</ion-select-option>
+              <ion-select-option value="avgScrollDepth">Avg Scroll Depth</ion-select-option>
+            </ion-select>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list *ngIf="!isLoading && visiblePages.length" lines="none" class="pages-list">
+            <ion-item *ngFor="let row of visiblePages" class="page-row" [title]="row.url">
+              <div class="page-row__inner" [style.--bar-width.%]="(row.value / pagesMaxValue) * 100">
+                <div class="page-row__main">
+                  <span class="page-row__url">{{ truncateUrl(row.url) }}</span>
+                  <span class="page-row__value">{{ pageValueLabel(row) }}</span>
+                </div>
+                <div class="page-row__meta">
+                  <span
+                    *ngIf="pagesMetric === 'views' && row.change != null"
+                    class="change-pill"
+                    [class.change-pill--up]="row.change > 0"
+                    [class.change-pill--down]="row.change < 0">
+                    {{ row.change > 0 ? '+' : '' }}{{ row.change }}%
+                  </span>
+                  <ion-button fill="clear" size="small" (click)="viewHeatmap(row.url)" aria-label="View heatmap">
+                    <ion-icon slot="icon-only" name="open-outline"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </ion-item>
+          </ion-list>
+          <p *ngIf="!isLoading && !visiblePages.length" class="empty-hint">No page data for this period.</p>
+          <ion-button
+            *ngIf="!isLoading && (pages?.data?.length || 0) > 5"
+            fill="clear"
+            size="small"
+            (click)="showAllPages = !showAllPages">
+            {{ showAllPages ? 'Show less' : 'Show more' }}
+          </ion-button>
+          <div *ngIf="isLoading">
+            <ion-skeleton-text *ngFor="let i of [1,2,3,4,5]" [animated]="true"></ion-skeleton-text>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="analytics-card">
+        <ion-card-header>
+          <h2 class="section-title">Devices</h2>
+        </ion-card-header>
+        <ion-card-content class="devices-content">
+          <div class="donut-wrap" *ngIf="!isLoading && donutSlices.length">
+            <svg viewBox="0 0 100 100" class="donut-svg" role="img" aria-label="Device breakdown">
+              <path
+                *ngFor="let slice of donutSlices"
+                [attr.d]="slice.path"
+                [attr.fill]="'var(' + slice.colorVar + ')'" />
+              <text x="50" y="46" text-anchor="middle" class="donut-center-label">{{ donutCenterLabel }}</text>
+              <text x="50" y="58" text-anchor="middle" class="donut-center-pct">{{ donutCenterPct }}</text>
+            </svg>
+            <ul class="donut-legend">
+              <li *ngFor="let slice of donutSlices">
+                <span class="legend-dot" [style.background]="'var(' + slice.colorVar + ')'"></span>
+                <span>{{ deviceLabel(slice.device) }}</span>
+                <span class="legend-pct">{{ slice.percentage }}%</span>
+              </li>
+            </ul>
+          </div>
+          <div *ngIf="isLoading">
+            <ion-skeleton-text [animated]="true" style="height: 160px;"></ion-skeleton-text>
+          </div>
+
+          <h3 class="subsection-title">Viewports</h3>
+          <ul class="viewport-list" *ngIf="!isLoading">
+            <li *ngFor="let vp of topViewports">
+              {{ vp.width }} × {{ vp.height }} — {{ vp.count }} sessions
+            </li>
+          </ul>
+          <p *ngIf="!isLoading && !topViewports.length" class="empty-hint">No viewport data.</p>
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+    <section class="analytics-section analytics-card engagement-section">
+      <h2 class="section-title ion-padding-start">Engagement</h2>
+      <div class="engagement-grid">
+        <div class="engagement-col">
+          <h3 class="subsection-title">Time on Site</h3>
+          <div *ngFor="let b of engagement?.durationBuckets || []" class="h-bar-row">
+            <span class="h-bar-label">{{ b.label }}</span>
+            <div class="h-bar-track">
+              <div class="h-bar-fill" [style.width.%]="(b.count / durationMax) * 100"></div>
+            </div>
+            <span class="h-bar-count">{{ b.count }}</span>
+          </div>
+        </div>
+        <div class="engagement-col">
+          <h3 class="subsection-title">Pages per Session</h3>
+          <div *ngFor="let b of engagement?.sessionDepthBuckets || []" class="h-bar-row">
+            <span class="h-bar-label">{{ b.label }}</span>
+            <div class="h-bar-track">
+              <div class="h-bar-fill" [style.width.%]="(b.count / depthMax) * 100"></div>
+            </div>
+            <span class="h-bar-count">{{ b.count }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="analytics-section quick-links">
+      <ion-card class="analytics-card quick-link-card" [routerLink]="['/heatmaps', projectId]">
+        <ion-card-content>
+          <ion-icon name="flame-outline"></ion-icon>
+          <span>View Heatmaps</span>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="analytics-card quick-link-card" routerLink="/sessions">
+        <ion-card-content>
+          <ion-icon name="play-circle-outline"></ion-icon>
+          <span>Session Replays</span>
+        </ion-card-content>
+      </ion-card>
+      <ion-card class="analytics-card quick-link-card" [routerLink]="['/projects/details', projectId]">
+        <ion-card-content>
+          <ion-icon name="settings-outline"></ion-icon>
+          <span>Project Settings</span>
+        </ion-card-content>
+      </ion-card>
+    </section>
+  </div>
+</ion-content>

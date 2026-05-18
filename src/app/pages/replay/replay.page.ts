@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, HostListener } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   SessionService,
   SessionInfo,
@@ -11,6 +11,18 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ReplayEngine } from './replay-engine';
 import { ScrollAnimator } from './scroll-animator';
 import { VirtualCursor } from './virtual-cursor';
+import {
+  buildActivityTimeline,
+  countInteractions,
+  formatDeviceShort,
+  formatRelativeTime,
+  formatWatchDuration,
+  HumanTimelineRow,
+  pagePathShort,
+  pageTitleFromUrl,
+  pagesLabel,
+  pagesVisitedCount,
+} from 'src/app/utils/session-display';
 
 interface RippleEntry {
   element: HTMLElement;
@@ -47,9 +59,15 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   replayScale = 1;
   iframeFade = false;
 
-  /** Layout: desktop 3-column vs mobile tabs */
+  /** Layout: desktop 2-column vs mobile tabs */
   wideViewport = false;
-  replayTab: 'player' | 'info' | 'events' = 'player';
+  replayTab: 'player' | 'summary' = 'player';
+
+  activityTimeline: HumanTimelineRow[] = [];
+  visibleTimeline: HumanTimelineRow[] = [];
+  showAllTimeline = false;
+  showSessionId = false;
+  expandedTimelineIndex: number | null = null;
 
   private engine: ReplayEngine | null = null;
   private scrollAnimator = new ScrollAnimator();
@@ -74,16 +92,50 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
     return !!(v && typeof v.width === 'number' && typeof v.height === 'number');
   }
 
-  get deviceLabel(): string {
-    const s = this.session;
-    if (!s) return '';
-    const device = (s.deviceType || 'Desktop').replace(/^\w/, (c) => c.toUpperCase());
-    const size = s.viewport
-      ? `${s.viewport.width}×${s.viewport.height}`
-      : s.screen
-        ? `${s.screen.width}×${s.screen.height}`
-        : '—';
-    return `${device} · ${size}`;
+  get headerSubtitle(): string {
+    const title = pageTitleFromUrl(this.session?.url || this.currentUrlDisplay);
+    const when = formatRelativeTime(this.session?.startedAt);
+    return `${title} · ${when}`;
+  }
+
+  get visitDurationLabel(): string {
+    return formatWatchDuration(this.session?.duration);
+  }
+
+  get deviceFriendlyLabel(): string {
+    return formatDeviceShort(this.session?.deviceType);
+  }
+
+  get screenSizeLabel(): string {
+    const v = this.session?.viewport || this.session?.screen;
+    if (v?.width && v?.height) return `${v.width} × ${v.height} screen`;
+    return '';
+  }
+
+  get pagesVisitedLabel(): string {
+    return pagesLabel(this.multiPageMode ? this.replayPages.length : 1);
+  }
+
+  pageTitle(url?: string): string {
+    return pageTitleFromUrl(url);
+  }
+
+  formatRelativeTime = formatRelativeTime;
+
+  get interactionsLabel(): string {
+    const n = countInteractions(this.events);
+    return n === 1 ? '1 interaction' : `${n} interactions`;
+  }
+
+  get startingPageLabel(): string {
+    return pagePathShort(this.session?.url || this.currentUrlDisplay) || '—';
+  }
+
+  get deviceBadgeLabel(): string {
+    const d = (this.session?.deviceType || 'desktop').toLowerCase();
+    if (d === 'android' || d === 'ios') return 'Mobile';
+    if (d === 'tablet') return 'Tablet';
+    return 'Desktop';
   }
 
   get scaledWidth(): number {
@@ -117,6 +169,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private sessionService: SessionService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -132,16 +185,36 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
     this.updateWideViewport();
   }
 
-  formatEventLine(ev: ReplayEvent): string {
-    const ms = ev.timestamp < 1e12 ? ev.timestamp * 1000 : ev.timestamp;
-    const t = new Date(ms).toISOString().slice(11, 23);
-    const extra =
-      ev.data?.scrollY != null
-        ? ` scrollY=${Math.round(ev.data.scrollY)}`
-        : ev.data?.x != null && ev.data?.y != null
-          ? ` (${Math.round(ev.data.x)}, ${Math.round(ev.data.y)})`
-          : '';
-    return `${t} · ${ev.type}${extra}`;
+  private refreshActivityTimeline(): void {
+    this.activityTimeline = buildActivityTimeline(this.events, 50);
+    this.updateVisibleTimeline();
+  }
+
+  updateVisibleTimeline(): void {
+    const max = this.showAllTimeline ? this.activityTimeline.length : 20;
+    this.visibleTimeline = this.activityTimeline.slice(0, max);
+  }
+
+  toggleShowAllTimeline(): void {
+    this.showAllTimeline = !this.showAllTimeline;
+    this.updateVisibleTimeline();
+  }
+
+  toggleTimelineDetail(index: number): void {
+    this.expandedTimelineIndex = this.expandedTimelineIndex === index ? null : index;
+  }
+
+  async copySessionId(): Promise<void> {
+    if (!this.sessionId || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(this.sessionId);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  goToRecordings(): void {
+    void this.router.navigate(['/sessions']);
   }
 
   @HostListener('window:resize')
@@ -185,7 +258,14 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   private loadSession(): void {
     this.sessionService.getSessionFull(this.sessionId).subscribe({
       next: (full) => this.applyFullSession(full),
-      error: () => this.loadLegacySession()
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          this.loading = false;
+          this.error = err.error?.message || 'This recording is not available';
+          return;
+        }
+        this.loadLegacySession();
+      },
     });
   }
 
@@ -213,6 +293,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
 
     this.updateViewportForCurrentPage();
     this.buildTimelineSegments();
+    this.refreshActivityTimeline();
     this.loading = false;
     this.initEngine();
     setTimeout(() => {
@@ -235,6 +316,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
         this.sessionService.getSessionEvents(this.sessionId).subscribe({
           next: (evs) => {
             this.events = evs;
+            this.refreshActivityTimeline();
             this.loading = false;
             this.initEngine();
             setTimeout(() => {
@@ -245,13 +327,19 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
           },
           error: (err: HttpErrorResponse) => {
             this.loading = false;
-            this.error = err.status === 404 ? 'Session not found' : 'Failed to load events';
+            this.error =
+              err.status === 404
+                ? err.error?.message || 'This recording is not available'
+                : 'Failed to load recording';
           }
         });
       },
       error: (err: HttpErrorResponse) => {
         this.loading = false;
-        this.error = err.status === 404 ? 'Session not found' : 'Failed to load session';
+        this.error =
+          err.status === 404
+            ? err.error?.message || 'This recording is not available'
+            : 'Failed to load recording';
       }
     });
   }

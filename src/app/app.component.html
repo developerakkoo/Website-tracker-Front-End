@@ -37,6 +37,20 @@
             </ion-menu-toggle>
           }
         </ion-list>
+
+        <div class="menu-footer">
+          <p class="menu-user-email" *ngIf="currentUser?.email" [title]="currentUser!.email">
+            {{ currentUser!.email }}
+          </p>
+          <ion-button
+            expand="block"
+            fill="clear"
+            class="menu-sign-out"
+            (click)="confirmLogout()">
+            <ion-icon slot="start" name="log-out-outline"></ion-icon>
+            Sign out
+          </ion-button>
+        </div>
       </ion-content>
     </ion-menu>
 

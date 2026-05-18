@@ -3,43 +3,46 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Sessions</ion-title>
+    <ion-title>
+      Recordings
+      <p class="toolbar-subtitle" *ngIf="projectName">{{ projectName }}</p>
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <div class="wt-page-padding sessions-hub">
-    <p class="wt-text-muted sessions-hub__intro" *ngIf="projectName">
-      Recorded sessions for <strong>{{ projectName }}</strong>
+    <p class="sessions-hub__intro" *ngIf="projectName">
+      Watch recordings of real visits to <strong>{{ projectName }}</strong>.
+    </p>
+    <p class="sessions-hub__intro wt-text-muted" *ngIf="!projectName">
+      Watch how visitors used your site.
     </p>
 
-    <div *ngIf="loading" class="sessions-hub__state">
-      <ion-spinner name="crescent" aria-label="Loading sessions"></ion-spinner>
+    <div *ngIf="loading" class="recordings-grid">
+      <app-session-recording-card *ngFor="let i of skeletonSlots" [skeleton]="true"></app-session-recording-card>
     </div>
 
-    <p *ngIf="error" class="sessions-hub__error" role="alert">{{ error }}</p>
+    <div *ngIf="error && !loading" class="sessions-hub__error-block">
+      <p class="sessions-hub__error" role="alert">{{ error }}</p>
+      <ion-button fill="outline" size="small" (click)="loadSessions()">Try again</ion-button>
+    </div>
 
     <app-card
       *ngIf="!loading && !error && sessions.length === 0"
-      title="No sessions yet"
-      subtitle="Install the tracker on your site and visit a few pages.">
+      title="No recordings yet"
+      subtitle="When someone browses your site for at least a few seconds, their visit will appear here.">
       <ion-button expand="block" [routerLink]="['/projects/details', projectContext.activeProjectId]" *ngIf="projectContext.activeProjectId">
         View installation snippet
       </ion-button>
     </app-card>
 
-    <ion-list *ngIf="!loading && sessions.length > 0" lines="full" class="sessions-list">
-      <ion-item
-        button
-        *ngFor="let s of sessions"
-        (click)="openReplay(s)"
-        [attr.aria-label]="'Replay session ' + (s.sessionId || '')">
-        <ion-label>
-          <h2>{{ s.url || 'Unknown page' }}</h2>
-          <p>{{ formatDate(s.startedAt) }} · {{ s.eventCount ?? 0 }} events</p>
-        </ion-label>
-        <ion-icon slot="end" name="play-circle-outline" color="primary"></ion-icon>
-      </ion-item>
-    </ion-list>
+    <div *ngIf="!loading && sessions.length > 0" class="recordings-grid">
+      <app-session-recording-card
+        *ngFor="let s of sessions; trackBy: trackBySessionId"
+        [session]="s"
+        (play)="openReplay($event)">
+      </app-session-recording-card>
+    </div>
   </div>
 </ion-content>

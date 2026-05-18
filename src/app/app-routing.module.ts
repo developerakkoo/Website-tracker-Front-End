@@ -42,6 +42,29 @@ const routes: Routes = [
     canActivate: [AuthGuard, ProjectGuard],
   },
   {
+    path: 'analytics',
+    loadChildren: () =>
+      import('./pages/analytics-hub/analytics-hub.module').then((m) => m.AnalyticsHubPageModule),
+    canActivate: [AuthGuard, ProjectGuard],
+  },
+  {
+    path: 'analytics/:projectId',
+    loadChildren: () =>
+      import('./pages/analytics/analytics.module').then((m) => m.AnalyticsPageModule),
+    canActivate: [AuthGuard, ProjectGuard],
+  },
+  {
+    path: 'goals',
+    loadChildren: () =>
+      import('./pages/goals-hub/goals-hub.module').then((m) => m.GoalsHubPageModule),
+    canActivate: [AuthGuard, ProjectGuard],
+  },
+  {
+    path: 'goals/:projectId',
+    loadChildren: () => import('./pages/goals/goals.module').then((m) => m.GoalsPageModule),
+    canActivate: [AuthGuard, ProjectGuard],
+  },
+  {
     path: 'heatmaps',
     loadChildren: () => import('./pages/heatmaps-hub/heatmaps-hub.module').then((m) => m.HeatmapsHubPageModule),
     canActivate: [AuthGuard, ProjectGuard],

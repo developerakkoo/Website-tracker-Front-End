@@ -40,6 +40,10 @@
       <ion-button fill="clear" aria-label="Notifications">
         <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
       </ion-button>
+
+      <ion-button fill="clear" aria-label="Account" (click)="accountPopoverOpen = true">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
     </div>
 
     <div class="topbar__mobile-actions">
@@ -53,8 +57,23 @@
       <ion-button fill="clear" (click)="searchOpen = !searchOpen" aria-label="Toggle search">
         <ion-icon slot="icon-only" name="search-outline"></ion-icon>
       </ion-button>
+      <ion-button fill="clear" aria-label="Account" (click)="accountPopoverOpen = true">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
     </div>
   </div>
+
+  <ion-popover [isOpen]="accountPopoverOpen" (didDismiss)="accountPopoverOpen = false">
+    <ng-template>
+      <ion-content class="account-popover__content">
+        <p class="account-popover__email" *ngIf="currentUser?.email">{{ currentUser!.email }}</p>
+        <ion-button expand="block" fill="clear" class="account-popover__sign-out" (click)="confirmLogout()">
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          Sign out
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-popover>
 
   <div *ngIf="mobileProjectOpen && projects.length > 0" class="topbar__mobile-project">
     <ion-item lines="none" class="topbar__select-wrap">

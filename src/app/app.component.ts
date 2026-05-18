@@ -1,8 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { MenuController } from '@ionic/angular';
+import { AlertController, MenuController } from '@ionic/angular';
 import { Subscription, filter } from 'rxjs';
-import { Auth } from './services/auth';
+import { Auth, AuthUser } from './services/auth';
 import { ProjectContextService } from './services/project-context.service';
 
 @Component({
@@ -14,10 +14,13 @@ import { ProjectContextService } from './services/project-context.service';
 export class AppComponent implements OnInit, OnDestroy {
   showShell = false;
   activeProjectName = '';
+  currentUser: AuthUser | null = null;
   private sub = new Subscription();
 
   readonly appPages = [
     { title: 'Dashboard', url: '/folder/Home', icon: 'grid-outline', exact: true },
+    { title: 'Analytics', url: '/analytics', icon: 'bar-chart-outline', exact: true },
+    { title: 'Goals', url: '/goals', icon: 'flag-outline', exact: true },
     { title: 'Projects', url: '/projects', icon: 'folder-outline', exact: true },
     { title: 'Sessions', url: '/sessions', icon: 'videocam-outline', exact: true },
     { title: 'Heatmaps', url: '/heatmaps', icon: 'flame-outline', exact: true },
@@ -32,17 +35,18 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     private menuCtrl: MenuController,
     private auth: Auth,
-    private projectContext: ProjectContextService
+    private projectContext: ProjectContextService,
+    private alertCtrl: AlertController
   ) {
     this.applyShell(this.router.url);
   }
 
   ngOnInit(): void {
-    void this.auth.isAuthenticated().then(async (ok) => {
-      if (ok) {
-        await this.projectContext.initFromStorage();
-      }
-    });
+    this.sub.add(
+      this.auth.currentUser$.subscribe((u) => {
+        this.currentUser = u;
+      })
+    );
     this.sub.add(
       this.projectContext.activeProject$.subscribe((p) => {
         this.activeProjectName = p?.name ?? '';
@@ -64,5 +68,23 @@ export class AppComponent implements OnInit, OnDestroy {
     const guest = path === '/' || path === '/register' || path === '/select-project';
     this.showShell = !guest;
     void this.menuCtrl.enable(!guest, 'app-menu');
+  }
+
+  async confirmLogout(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Sign out?',
+      message: 'You will need to sign in again to access your projects.',
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Sign out',
+          role: 'destructive',
+          handler: () => {
+            void this.auth.logout();
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 }

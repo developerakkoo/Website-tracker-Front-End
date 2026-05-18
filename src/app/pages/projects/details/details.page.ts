@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ToastController, LoadingController } from '@ionic/angular';
+import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { Projects, ProjectStatus } from 'src/app/services/projects';
 import { SessionService, ProjectSession } from 'src/app/services/session';
+import { GoalsService, TrackedGoal } from 'src/app/services/goals.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment.prod';
 import { ProjectContextService } from 'src/app/services/project-context.service';
@@ -21,14 +22,18 @@ export class DetailsPage implements OnInit {
   installationSnippet: string = '';
   sessions: ProjectSession[] = [];
   sessionsLoading = false;
+  goals: TrackedGoal[] = [];
+  goalsLoading = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private projectsService: Projects,
     private sessionService: SessionService,
+    private goalsService: GoalsService,
     private toastController: ToastController,
     private loadingController: LoadingController,
+    private alertController: AlertController,
     private projectContext: ProjectContextService
   ) {}
 
@@ -54,6 +59,7 @@ export class DetailsPage implements OnInit {
         await this.projectContext.setActiveProject(project);
         this.generateInstallationSnippet();
         this.loadSessions();
+        this.loadGoals();
         await loading.dismiss();
       },
       error: async (error: HttpErrorResponse) => {
@@ -175,23 +181,132 @@ export class DetailsPage implements OnInit {
     });
   }
 
+  get recentSessions(): ProjectSession[] {
+    return this.sessions.slice(0, 5);
+  }
+
   openReplay(sessionId: string) {
     this.router.navigate(['/replay', sessionId]);
   }
 
-  formatSessionDate(dateStr: string): string {
-    if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    return d.toLocaleString();
+  openReplayFromCard(session: ProjectSession): void {
+    if (session?.sessionId) {
+      this.openReplay(session.sessionId);
+    }
   }
 
-  formatDeviceType(deviceType: string): string {
-    if (!deviceType) return '';
-    const d = deviceType.toLowerCase();
-    if (d === 'android') return 'Android';
-    if (d === 'ios') return 'iPhone/iPad';
-    if (d === 'tablet') return 'Tablet';
-    return 'Desktop';
+  loadGoals(): void {
+    if (!this.projectId) return;
+    this.goalsLoading = true;
+    this.goalsService.listGoals(this.projectId, 7).subscribe({
+      next: (goals) => {
+        this.goals = goals;
+        this.goalsLoading = false;
+      },
+      error: () => {
+        this.goalsLoading = false;
+      },
+    });
+  }
+
+  async presentAddGoal(template?: 'whatsapp'): Promise<void> {
+    const alert = await this.alertController.create({
+      header: template === 'whatsapp' ? 'Add WhatsApp goal' : 'Add conversion goal',
+      message:
+        'Track button clicks by adding data-wt-goal to your HTML, or use a CSS selector for auto-detection.',
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: 'Display name',
+          value: template === 'whatsapp' ? 'WhatsApp button' : '',
+        },
+        {
+          name: 'key',
+          type: 'text',
+          placeholder: 'Key (e.g. whatsapp)',
+          value: template === 'whatsapp' ? 'whatsapp' : '',
+        },
+        {
+          name: 'selector',
+          type: 'text',
+          placeholder: 'CSS selector (optional)',
+          value:
+            template === 'whatsapp'
+              ? 'a[href*="wa.me"], a[href*="api.whatsapp.com"]'
+              : '',
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Create',
+          handler: (data) => {
+            void this.createGoal(data, template);
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async createGoal(
+    data: { name?: string; key?: string; selector?: string },
+    template?: 'whatsapp'
+  ): Promise<void> {
+    const payload =
+      template === 'whatsapp'
+        ? { template: 'whatsapp' as const, name: data.name, key: data.key, selector: data.selector }
+        : {
+            name: data.name?.trim(),
+            key: data.key?.trim(),
+            selector: data.selector?.trim() || '',
+          };
+
+    this.goalsService.createGoal(this.projectId, payload).subscribe({
+      next: async () => {
+        this.loadGoals();
+        const toast = await this.toastController.create({
+          message: 'Goal created',
+          duration: 2000,
+          color: 'success',
+        });
+        await toast.present();
+      },
+      error: async (err: HttpErrorResponse) => {
+        const toast = await this.toastController.create({
+          message: err.error?.message || 'Could not create goal',
+          duration: 3000,
+          color: 'danger',
+        });
+        await toast.present();
+      },
+    });
+  }
+
+  async confirmDeleteGoal(goal: TrackedGoal): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Delete goal?',
+      message: `"${goal.name}" will stop collecting new click data.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.goalsService.deleteGoal(this.projectId, goal.id).subscribe({
+              next: () => this.loadGoals(),
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  copyGoalSnippet(goal: TrackedGoal): void {
+    void this.copyToClipboard(this.goalsService.goalSnippet(goal.key, goal.name), 'Goal snippet');
   }
 
   getLastSeenText(): string {
