@@ -134,6 +134,13 @@
   white-space: nowrap;
 }
 
+.snippet-warning {
+  display: block;
+  margin-bottom: var(--wt-space-12);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
 .snippet-container {
   background: var(--wt-bg);
   border: 1px solid var(--wt-border);

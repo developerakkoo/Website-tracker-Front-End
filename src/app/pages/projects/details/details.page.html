@@ -59,6 +59,9 @@
         </app-card>
 
         <app-card title="Installation snippet" subtitle="Add this to your website HTML (before closing body).">
+          <ion-note *ngFor="let warning of snippetWarnings" color="warning" class="snippet-warning">
+            {{ warning }}
+          </ion-note>
           <div class="snippet-container" role="region" aria-label="Installation snippet">
             <pre><code>{{ installationSnippet }}</code></pre>
           </div>

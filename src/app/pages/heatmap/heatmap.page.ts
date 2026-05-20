@@ -15,7 +15,8 @@ import {
 } from 'src/app/services/heatmap';
 import { Projects } from 'src/app/services/projects';
 import { ProjectContextService } from 'src/app/services/project-context.service';
-import { environment } from 'src/environments/environment.prod';
+import { environment } from 'src/environments/environment';
+import { buildInstallationSnippet, getTrackerDomain } from 'src/app/utils/tracker-snippet';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 
 export type HeatmapType = 'click' | 'scroll' | 'attention';
@@ -85,7 +86,7 @@ export class HeatmapPage implements OnInit, OnDestroy {
     private projectContext: ProjectContextService,
     private toastCtrl: ToastController
   ) {
-    this.trackerDomain = environment.API_URL.replace('/api', '');
+    this.trackerDomain = getTrackerDomain(environment.API_URL);
   }
 
   get isLoading(): boolean {
@@ -315,20 +316,7 @@ export class HeatmapPage implements OnInit, OnDestroy {
 
   buildInstallationSnippet(): string {
     if (!this.projectApiKey) return '';
-    return `<script>
-(function(w,d,s,u,k,b){
-  w.__trackerKey = k;
-  w.__trackerBase = b;
-  var js = d.createElement(s);
-  js.async = true;
-  js.src = u;
-  var f = d.getElementsByTagName(s)[0];
-  f.parentNode.insertBefore(js,f);
-})(window, document, "script",
-   "${this.trackerDomain}/tracker.js",
-   "${this.projectApiKey}",
-   "${this.trackerDomain}");
-</script>`;
+    return buildInstallationSnippet(this.trackerDomain, this.projectApiKey);
   }
 
   async copySnippet(): Promise<void> {

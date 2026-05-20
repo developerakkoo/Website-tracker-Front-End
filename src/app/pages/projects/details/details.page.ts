@@ -5,8 +5,13 @@ import { Projects, ProjectStatus } from 'src/app/services/projects';
 import { SessionService, ProjectSession } from 'src/app/services/session';
 import { GoalsService, TrackedGoal } from 'src/app/services/goals.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment.prod';
+import { environment } from 'src/environments/environment';
 import { ProjectContextService } from 'src/app/services/project-context.service';
+import {
+  buildInstallationSnippet,
+  getSnippetConfigWarnings,
+  getTrackerDomain,
+} from 'src/app/utils/tracker-snippet';
 
 @Component({
   selector: 'app-details',
@@ -20,6 +25,7 @@ export class DetailsPage implements OnInit {
   status: ProjectStatus | null = null;
   trackerDomain: string = '';
   installationSnippet: string = '';
+  snippetWarnings: string[] = [];
   sessions: ProjectSession[] = [];
   sessionsLoading = false;
   goals: TrackedGoal[] = [];
@@ -41,9 +47,9 @@ export class DetailsPage implements OnInit {
     this.projectId = this.route.snapshot.paramMap.get('id') || '';
     
     // Extract domain from API_URL
-    const apiUrl = environment.API_URL;
-    this.trackerDomain = apiUrl.replace('/api', '');
-    
+    this.trackerDomain = getTrackerDomain(environment.API_URL);
+    this.snippetWarnings = getSnippetConfigWarnings(this.trackerDomain);
+
     this.loadProject();
   }
 
@@ -60,6 +66,7 @@ export class DetailsPage implements OnInit {
         this.generateInstallationSnippet();
         this.loadSessions();
         this.loadGoals();
+        this.refreshInstallationStatus(false);
         await loading.dismiss();
       },
       error: async (error: HttpErrorResponse) => {
@@ -80,20 +87,10 @@ export class DetailsPage implements OnInit {
       return;
     }
 
-    this.installationSnippet = `<script>
-(function(w,d,s,u,k,b){
-  w.__trackerKey = k;
-  w.__trackerBase = b;
-  var js = d.createElement(s);
-  js.async = true;
-  js.src = u;
-  var f = d.getElementsByTagName(s)[0];
-  f.parentNode.insertBefore(js,f);
-})(window, document, "script", 
-   "${this.trackerDomain}/tracker.js", 
-   "${this.project.apiKey}",
-   "${this.trackerDomain}");
-</script>`;
+    this.installationSnippet = buildInstallationSnippet(
+      this.trackerDomain,
+      this.project.apiKey
+    );
   }
 
   async copyToClipboard(text: string, label: string) {
@@ -117,26 +114,37 @@ export class DetailsPage implements OnInit {
   }
 
   async checkInstallationStatus() {
-    const loading = await this.loadingController.create({
-      message: 'Checking status...'
-    });
-    await loading.present();
+    await this.refreshInstallationStatus(true);
+  }
+
+  private async refreshInstallationStatus(showLoading: boolean) {
+    if (!this.projectId) return;
+
+    let loading: HTMLIonLoadingElement | null = null;
+    if (showLoading) {
+      loading = await this.loadingController.create({
+        message: 'Checking status...',
+      });
+      await loading.present();
+    }
 
     this.projectsService.getProjectStatus(this.projectId).subscribe({
       next: async (status: ProjectStatus) => {
         this.status = status;
-        await loading.dismiss();
+        if (loading) await loading.dismiss();
       },
       error: async (error: HttpErrorResponse) => {
         console.error('Error checking status:', error);
-        await loading.dismiss();
-        const toast = await this.toastController.create({
-          message: 'Failed to check installation status',
-          duration: 2000,
-          color: 'danger'
-        });
-        toast.present();
-      }
+        if (loading) await loading.dismiss();
+        if (showLoading) {
+          const toast = await this.toastController.create({
+            message: 'Failed to check installation status',
+            duration: 2000,
+            color: 'danger',
+          });
+          toast.present();
+        }
+      },
     });
   }
 

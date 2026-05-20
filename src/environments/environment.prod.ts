@@ -3,5 +3,5 @@
 // See DEPLOYMENT.md at the repository root.
 export const environment = {
   production: true,
-  API_URL: 'https://api.yourdomain.com/api',
+  API_URL: 'https://api.techlapse.co.in/api',
 };
