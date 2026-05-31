@@ -1,15 +1,3 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-    <ion-title>
-      Recordings
-      <p class="toolbar-subtitle" *ngIf="projectName">{{ projectName }}</p>
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
   <div class="wt-page-padding sessions-hub">
     <p class="sessions-hub__intro" *ngIf="projectName">
@@ -19,9 +7,11 @@
       Watch how visitors used your site.
     </p>
 
-    <div *ngIf="loading" class="recordings-grid">
-      <app-session-recording-card *ngFor="let i of skeletonSlots" [skeleton]="true"></app-session-recording-card>
-    </div>
+    <app-sessions-filter-bar
+      *ngIf="projectContext.activeProjectId"
+      [filters]="filters"
+      (filtersChange)="onFiltersChange($event)">
+    </app-sessions-filter-bar>
 
     <div *ngIf="error && !loading" class="sessions-hub__error-block">
       <p class="sessions-hub__error" role="alert">{{ error }}</p>
@@ -29,20 +19,53 @@
     </div>
 
     <app-card
-      *ngIf="!loading && !error && sessions.length === 0"
+      *ngIf="!loading && !error && total === 0 && projectContext.activeProjectId"
       title="No recordings yet"
-      subtitle="When someone browses your site for at least a few seconds, their visit will appear here.">
-      <ion-button expand="block" [routerLink]="['/projects/details', projectContext.activeProjectId]" *ngIf="projectContext.activeProjectId">
+      subtitle="When someone browses your site for at least a few seconds, their visit will appear here. Adjust filters or check back later.">
+      <ion-button expand="block" [routerLink]="['/projects/details', projectContext.activeProjectId]">
         View installation snippet
       </ion-button>
     </app-card>
 
-    <div *ngIf="!loading && sessions.length > 0" class="recordings-grid">
-      <app-session-recording-card
-        *ngFor="let s of sessions; trackBy: trackBySessionId"
-        [session]="s"
-        (play)="openReplay($event)">
-      </app-session-recording-card>
+    <div *ngIf="loading && projectContext.activeProjectId" class="sessions-hub__loading">
+      <app-sessions-table [loading]="true" [skeletonRows]="8"></app-sessions-table>
     </div>
+
+    <ng-container *ngIf="!loading && items.length > 0">
+      <div class="sessions-hub__groups">
+        <app-sessions-date-group
+          *ngFor="let g of dateGroups; trackBy: trackByDateKey"
+          [group]="g"
+          [sort]="sort"
+          (sortChange)="onSortChange($event)"
+          (rowClick)="openReplay($event)"
+          (watchClick)="openReplay($event)">
+        </app-sessions-date-group>
+      </div>
+
+      <footer class="sessions-pagination" aria-label="Sessions pagination">
+        <p class="sessions-pagination__summary">
+          Showing {{ rangeStart }}–{{ rangeEnd }} of {{ total }}
+        </p>
+        <div class="sessions-pagination__controls">
+          <ion-select
+            class="sessions-pagination__size"
+            interface="popover"
+            label="Per page"
+            labelPlacement="stacked"
+            [value]="limit"
+            (ionChange)="onPageSizeChange(+$any($event).detail.value)">
+            <ion-select-option *ngFor="let n of pageSizeOptions" [value]="n">{{ n }}</ion-select-option>
+          </ion-select>
+          <ion-button fill="outline" size="small" [disabled]="!canPrev" (click)="prevPage()">
+            Previous
+          </ion-button>
+          <span class="sessions-pagination__page">Page {{ page }} of {{ totalPages || 1 }}</span>
+          <ion-button fill="outline" size="small" [disabled]="!canNext" (click)="nextPage()">
+            Next
+          </ion-button>
+        </div>
+      </footer>
+    </ng-container>
   </div>
 </ion-content>

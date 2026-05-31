@@ -7,6 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { AddPageRoutingModule } from './add-routing.module';
 
 import { AddPage } from './add.page';
+import { SharedModule } from 'src/app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -14,6 +15,7 @@ import { AddPage } from './add.page';
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    SharedModule,
     AddPageRoutingModule
   ],
   declarations: [AddPage]

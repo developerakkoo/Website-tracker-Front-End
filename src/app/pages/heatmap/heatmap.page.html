@@ -1,42 +1,35 @@
-<ion-header>
-  <ion-toolbar class="heatmap-toolbar-row">
-    <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="'/projects/details/' + projectId"></ion-back-button>
-      <div class="heatmap-title-block">
-        <span class="heatmap-title">Heatmaps</span>
-        <span class="heatmap-subtitle">{{ projectName }}</span>
-      </div>
-    </ion-buttons>
+<app-page-toolbar [backHref]="'/projects/details/' + projectId" [subtitle]="projectName">
+  <div end class="heatmap-toolbar-end">
+    <ion-button
+      id="url-trigger"
+      fill="outline"
+      size="small"
+      class="url-select-btn wt-header-chip"
+      (click)="openUrlPopover()"
+      [disabled]="loadingUrls || urls.length === 0">
+      <ion-icon slot="start" name="link-outline"></ion-icon>
+      {{ truncateUrl(selectedUrl) }}
+    </ion-button>
+    <ion-button
+      class="wt-header-icon-btn"
+      fill="clear"
+      aria-label="Export PNG"
+      [disabled]="isEmpty || exporting"
+      (click)="exportPng()">
+      <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+    </ion-button>
+    <ion-button class="wt-header-icon-btn" fill="clear" aria-label="Refresh" (click)="refresh()">
+      <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+    </ion-button>
+  </div>
+</app-page-toolbar>
 
-    <ion-buttons slot="center" class="heatmap-url-center">
-      <ion-button
-        id="url-trigger"
-        fill="outline"
-        size="small"
-        class="url-select-btn"
-        (click)="openUrlPopover()"
-        [disabled]="loadingUrls || urls.length === 0">
-        <ion-icon slot="start" name="link-outline"></ion-icon>
-        {{ truncateUrl(selectedUrl) }}
-      </ion-button>
-    </ion-buttons>
-
-    <ion-buttons slot="end">
-      <ion-button
-        fill="clear"
-        aria-label="Export PNG"
-        [disabled]="isEmpty || exporting"
-        (click)="exportPng()">
-        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
-      </ion-button>
-      <ion-button fill="clear" aria-label="Refresh" (click)="refresh()">
-        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-popover trigger="url-trigger" [isOpen]="urlPopoverOpen" (didDismiss)="urlPopoverOpen = false">
+<ion-popover
+  trigger="url-trigger"
+  side="bottom"
+  alignment="end"
+  [isOpen]="urlPopoverOpen"
+  (didDismiss)="urlPopoverOpen = false">
   <ng-template>
     <ion-content class="url-popover-content">
       <ion-searchbar

@@ -11,18 +11,20 @@ ion-menu {
 }
 
 .menu-header ion-toolbar {
-  --background: transparent;
+  --background: var(--wt-header-bg);
   --border-width: 0 0 1px 0;
-  --border-color: var(--wt-border);
-  --min-height: 48px;
+  --border-color: var(--wt-header-border);
+  --min-height: var(--wt-header-height);
+  box-shadow: var(--wt-header-shadow);
 }
 
 .menu-header ion-title {
-  font-family: var(--wt-font-heading);
-  font-size: 1.0625rem;
+  font-family: var(--wt-header-title-font);
+  font-size: var(--wt-header-title-size);
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.3;
+  color: var(--wt-text);
 }
 
 .menu-content {

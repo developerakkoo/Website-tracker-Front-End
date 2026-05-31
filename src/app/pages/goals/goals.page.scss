@@ -1,21 +1,8 @@
-.goals-toolbar {
-  --background: var(--wt-surface);
-}
-
-.goals-title-block {
-  display: flex;
-  flex-direction: column;
-  margin-inline-start: 8px;
-}
-
-.goals-title {
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.goals-subtitle {
-  font-size: 0.75rem;
-  color: var(--wt-text-muted);
+.goals-days-segment {
+  --background: var(--wt-card);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-control);
+  min-height: 36px;
 }
 
 .goals-content {

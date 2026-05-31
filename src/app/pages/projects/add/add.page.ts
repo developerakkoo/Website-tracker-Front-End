@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { Projects } from 'src/app/services/projects';
 
 @Component({
@@ -17,7 +18,8 @@ export class AddPage implements OnInit {
               private loadingController: LoadingController,
               private toastController: ToastController,
               private projectsService:Projects,
-              private modalController: ModalController
+              private modalController: ModalController,
+              private router: Router
   ) {
     this.form = this.formBuilder.group({
       name:['',[Validators.required]]
@@ -44,7 +46,12 @@ export class AddPage implements OnInit {
         next:async (value:any) =>{
           await loading.dismiss();
           console.log(value);
-          this.modalController.dismiss();
+          const top = await this.modalController.getTop();
+          if (top) {
+            await this.modalController.dismiss();
+          } else {
+            void this.router.navigate(['/projects']);
+          }
           
         },
         error:async(error:HttpErrorResponse) =>{

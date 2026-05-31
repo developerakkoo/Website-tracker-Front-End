@@ -1,0 +1,57 @@
+<div class="sessions-filter-bar">
+  <ion-searchbar
+    class="sessions-filter-bar__search"
+    placeholder="Search URL or session ID…"
+    [value]="searchInput"
+    (ionInput)="onSearchInput($any($event).detail.value ?? '')"
+    debounce="0"
+    show-clear-button="focus">
+  </ion-searchbar>
+
+  <div class="sessions-filter-bar__row">
+    <ion-select
+      class="sessions-filter-bar__select"
+      interface="popover"
+      label="Date"
+      labelPlacement="stacked"
+      [value]="filters.datePreset"
+      (ionChange)="onDatePreset($any($event).detail.value)">
+      <ion-select-option *ngFor="let p of datePresets" [value]="p.value">{{ p.label }}</ion-select-option>
+    </ion-select>
+
+    <ion-select
+      class="sessions-filter-bar__select"
+      interface="popover"
+      label="Device"
+      labelPlacement="stacked"
+      [value]="filters.device"
+      (ionChange)="onDevice($any($event).detail.value)">
+      <ion-select-option *ngFor="let d of deviceOptions" [value]="d.value">{{ d.label }}</ion-select-option>
+    </ion-select>
+
+    <ion-select
+      class="sessions-filter-bar__select"
+      interface="popover"
+      label="Duration"
+      labelPlacement="stacked"
+      [value]="filters.minDurationMs"
+      (ionChange)="onMinDuration(+$any($event).detail.value)">
+      <ion-select-option *ngFor="let o of durationOptions" [value]="o.value">{{ o.label }}</ion-select-option>
+    </ion-select>
+  </div>
+
+  <div class="sessions-filter-bar__chips">
+    <ion-chip [color]="filters.hasRrweb ? 'primary' : undefined" (click)="toggleChip('hasRrweb')">
+      Has recording
+    </ion-chip>
+    <ion-chip [color]="filters.hasRageClicks ? 'danger' : undefined" (click)="toggleChip('hasRageClicks')">
+      Rage clicks
+    </ion-chip>
+    <ion-chip [color]="filters.hasErrors ? 'warning' : undefined" (click)="toggleChip('hasErrors')">
+      Has errors
+    </ion-chip>
+    <ion-chip [color]="filters.starred ? 'warning' : undefined" (click)="toggleChip('starred')">
+      Starred
+    </ion-chip>
+  </div>
+</div>

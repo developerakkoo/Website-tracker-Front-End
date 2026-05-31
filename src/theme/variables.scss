@@ -47,6 +47,20 @@
   --wt-font-heading: "Playfair Display", Georgia, "Times New Roman", serif;
   --wt-font-code: "Fira Code", ui-monospace, SFMono-Regular, monospace;
 
+  /* Shell header */
+  --wt-header-bg: var(--wt-bg);
+  --wt-header-border: var(--wt-border);
+  --wt-header-shadow: 0 1px 0 rgba(var(--wt-shadow-color), 0.06),
+    0 4px 12px rgba(var(--wt-shadow-color), 0.04);
+  --wt-header-height: 56px;
+  --wt-header-control-height: 40px;
+  --wt-header-title-font: var(--wt-font-heading);
+  --wt-header-title-size: 1.125rem;
+  --wt-header-chip-bg: var(--wt-card);
+  --wt-header-chip-border: var(--wt-border);
+  --wt-header-icon-color: var(--wt-text-muted);
+  --wt-header-icon-hover: var(--wt-primary);
+
   /* Ionic */
   --ion-font-family: var(--wt-font);
   --ion-background-color: var(--wt-bg);

@@ -1,12 +1,4 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-      <ion-back-button defaultHref="/projects"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Project</ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-page-toolbar backHref="/projects"></app-page-toolbar>
 
 <ion-content [fullscreen]="true">
   <div *ngIf="project" class="wt-page-padding details-page">

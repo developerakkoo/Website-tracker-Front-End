@@ -1,0 +1,81 @@
+<div class="sessions-table-wrap">
+  <table class="sessions-table" *ngIf="!loading">
+    <thead>
+      <tr>
+        <th scope="col">
+          <button type="button" class="sessions-table__sort" (click)="onHeaderClick('startedAt', true)" [attr.aria-sort]="sortAria('startedAt')">
+            Time
+            <ion-icon [name]="sortIcon('startedAt')" aria-hidden="true"></ion-icon>
+          </button>
+        </th>
+        <th scope="col">Page</th>
+        <th scope="col" class="sessions-table__hide-sm">
+          <button type="button" class="sessions-table__sort" (click)="onHeaderClick('duration', true)" [attr.aria-sort]="sortAria('duration')">
+            Duration
+            <ion-icon [name]="sortIcon('duration')" aria-hidden="true"></ion-icon>
+          </button>
+        </th>
+        <th scope="col" class="sessions-table__hide-sm">
+          <button type="button" class="sessions-table__sort" (click)="onHeaderClick('pageCount', true)" [attr.aria-sort]="sortAria('pageCount')">
+            Pages
+            <ion-icon [name]="sortIcon('pageCount')" aria-hidden="true"></ion-icon>
+          </button>
+        </th>
+        <th scope="col" class="sessions-table__hide-md">
+          <button type="button" class="sessions-table__sort" (click)="onHeaderClick('eventCount', true)" [attr.aria-sort]="sortAria('eventCount')">
+            Events
+            <ion-icon [name]="sortIcon('eventCount')" aria-hidden="true"></ion-icon>
+          </button>
+        </th>
+        <th scope="col" class="sessions-table__hide-md">Rage</th>
+        <th scope="col" class="sessions-table__hide-md">Errors</th>
+        <th scope="col" class="sessions-table__hide-sm">Rec</th>
+        <th scope="col" class="sessions-table__hide-sm">Device</th>
+        <th scope="col"><span class="visually-hidden">Action</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let s of sessions; trackBy: trackBySessionId"
+        class="sessions-table__row"
+        tabindex="0"
+        (click)="onRowClick(s)"
+        (keyup.enter)="onRowClick(s)">
+        <td class="sessions-table__time">{{ timeLabel(s.startedAt) }}</td>
+        <td class="sessions-table__page">
+          <span class="sessions-table__page-title">{{ pageTitle(s.url) }}</span>
+          <span class="sessions-table__page-path" *ngIf="pagePath(s.url)">{{ pagePath(s.url) }}</span>
+        </td>
+        <td class="sessions-table__hide-sm">{{ durationLabel(s.duration) }}</td>
+        <td class="sessions-table__hide-sm">{{ pagesText(s) }}</td>
+        <td class="sessions-table__hide-md">{{ s.eventCount }}</td>
+        <td class="sessions-table__hide-md">
+          <ion-badge color="danger" *ngIf="s.rageClickCount && s.rageClickCount > 0">{{ s.rageClickCount }}</ion-badge>
+        </td>
+        <td class="sessions-table__hide-md">
+          <ion-badge color="warning" *ngIf="s.errorCount && s.errorCount > 0">{{ s.errorCount }}</ion-badge>
+        </td>
+        <td class="sessions-table__hide-sm">
+          <ion-icon *ngIf="s.hasRrweb" name="ellipse" color="primary" aria-label="rrweb recording"></ion-icon>
+        </td>
+        <td class="sessions-table__hide-sm sessions-table__device">
+          <ion-icon [name]="deviceIcon(s.deviceType)" aria-hidden="true"></ion-icon>
+          <span>{{ deviceLabel(s.deviceType) }}</span>
+        </td>
+        <td class="sessions-table__action">
+          <ion-button fill="clear" size="small" class="sessions-table__watch" aria-label="Watch recording" (click)="onWatch(s, $event)">
+            <ion-icon slot="icon-only" name="play-circle"></ion-icon>
+          </ion-button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <table class="sessions-table sessions-table--skeleton" *ngIf="loading">
+    <tbody>
+      <tr *ngFor="let i of skeletonSlots">
+        <td colspan="10"><ion-skeleton-text [animated]="true" style="width: 100%; height: 40px;"></ion-skeleton-text></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

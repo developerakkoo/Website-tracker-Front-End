@@ -1,0 +1,15 @@
+<details class="sessions-date-group" open>
+  <summary class="sessions-date-group__header">
+    <span class="sessions-date-group__title">{{ group.label }}</span>
+    <span class="sessions-date-group__count">{{ countLabel }}</span>
+  </summary>
+  <div class="sessions-date-group__body">
+    <app-sessions-table
+      [sessions]="group.sessions"
+      [sort]="sort"
+      (sortChange)="sortChange.emit($event)"
+      (rowClick)="rowClick.emit($event)"
+      (watchClick)="watchClick.emit($event)">
+    </app-sessions-table>
+  </div>
+</details>

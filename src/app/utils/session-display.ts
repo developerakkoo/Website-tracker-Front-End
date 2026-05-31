@@ -98,7 +98,8 @@ export function deviceBadgeColor(deviceType?: string): string {
   return 'primary';
 }
 
-export function pagesVisitedCount(session: Pick<ProjectSession, 'pages'>): number {
+export function pagesVisitedCount(session: Pick<ProjectSession, 'pages' | 'pageCount'>): number {
+  if (session.pageCount != null && session.pageCount > 0) return session.pageCount;
   const n = session.pages?.length;
   return n && n > 0 ? n : 1;
 }

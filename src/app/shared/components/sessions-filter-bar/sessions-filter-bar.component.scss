@@ -1,0 +1,40 @@
+.sessions-filter-bar {
+  background: var(--wt-card);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-card);
+  padding: var(--wt-space-12) var(--wt-space-16);
+  margin-bottom: var(--wt-space-16);
+}
+
+.sessions-filter-bar__search {
+  --background: var(--wt-bg);
+  --border-radius: var(--wt-radius-control);
+  --box-shadow: none;
+  padding: 0;
+  margin-bottom: var(--wt-space-12);
+}
+
+.sessions-filter-bar__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--wt-space-8);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.sessions-filter-bar__select {
+  width: 100%;
+  --background: var(--wt-bg);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-control);
+  min-height: 48px;
+}
+
+.sessions-filter-bar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wt-space-8);
+  margin-top: var(--wt-space-12);
+}

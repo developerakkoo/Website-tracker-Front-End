@@ -1,14 +1,7 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/sessions"></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      Recording
-      <p class="replay-toolbar-sub" *ngIf="session && !loading">{{ headerSubtitle }}</p>
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-page-toolbar
+  backHref="/sessions"
+  [subtitle]="session && !loading ? headerSubtitle : ''">
+</app-page-toolbar>
 
 <ion-content [fullscreen]="true">
   <div *ngIf="loading" class="wt-page-padding">
@@ -99,6 +92,31 @@
       </aside>
 
       <main *ngIf="wideViewport || replayTab === 'player'" class="replay-main">
+        <div *ngIf="useRrweb" class="rrweb-player-wrapper">
+          <div class="player-controls">
+            <ion-button fill="clear" size="small" (click)="setSpeed(0.5)">0.5×</ion-button>
+            <ion-button fill="clear" size="small" (click)="setSpeed(1)">1×</ion-button>
+            <ion-button fill="clear" size="small" (click)="setSpeed(2)">2×</ion-button>
+            <ion-button fill="clear" size="small" (click)="setSpeed(4)">4×</ion-button>
+            <ion-toggle (ionChange)="toggleSkipInactive($any($event).detail.checked)" [checked]="skipInactive">
+              Skip inactive
+            </ion-toggle>
+          </div>
+          <div id="rrweb-player-container"></div>
+          <div class="events-sidebar" *ngIf="sidebarEvents.length > 0">
+            <h3 class="events-sidebar__title">Events</h3>
+            <button
+              type="button"
+              *ngFor="let ev of sidebarEvents"
+              class="event-item event-{{ ev.type }}"
+              (click)="seekToEvent(ev)">
+              <span class="event-time">{{ formatEventTime(ev.timestamp) }}</span>
+              <span class="event-label">{{ getEventLabel(ev) }}</span>
+            </button>
+          </div>
+        </div>
+
+        <ng-container *ngIf="!useRrweb">
         <div class="controls-toolbar" aria-label="Playback controls">
           <ion-button (click)="play()" [disabled]="isPlaying || events.length === 0" size="small">
             <ion-icon slot="icon-only" name="play" aria-hidden="true"></ion-icon>
@@ -143,7 +161,10 @@
           </div>
         </div>
 
-        <div *ngIf="!hasSnapshot" class="ion-padding-vertical no-snapshot-message">
+        <div *ngIf="replayAssetWarning" class="replay-asset-warning ion-padding-horizontal">
+          <ion-text color="warning">{{ replayAssetWarning }}</ion-text>
+        </div>
+        <div *ngIf="!replayAssetWarning && !hasSnapshot" class="ion-padding-vertical no-snapshot-message">
           <ion-text color="medium">Page preview unavailable; playback still shows movement.</ion-text>
         </div>
         <div *ngIf="!multiPageMode" class="device-label-row">
@@ -166,6 +187,7 @@
             </div>
           </div>
         </div>
+        </ng-container>
       </main>
     </div>
   </ng-container>

@@ -61,11 +61,11 @@ export class FolderPage implements OnInit, OnDestroy {
 
     this.loadingKpi = true;
     this.sessionService
-      .getProjectSessions(projectId)
+      .listProjectSessions(projectId, { page: 1, limit: 1 })
       .pipe(take(1))
       .subscribe({
-        next: (sessions) => {
-          this.sessionsCount = Array.isArray(sessions) ? sessions.length : 0;
+        next: (res) => {
+          this.sessionsCount = res.total ?? 0;
           this.loadingKpi = false;
         },
         error: () => {

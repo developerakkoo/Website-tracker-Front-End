@@ -1,0 +1,15 @@
+<div class="wt-page-toolbar">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button *ngIf="backHref" [defaultHref]="backHref" [text]="backLabel"></ion-back-button>
+      <ng-content select="[start]"></ng-content>
+      <div *ngIf="title" class="wt-page-toolbar__title-block">
+        <span class="wt-page-toolbar__title">{{ title }}</span>
+        <span *ngIf="subtitle" class="wt-page-toolbar__subtitle">{{ subtitle }}</span>
+      </div>
+    </ion-buttons>
+    <ion-buttons slot="end" class="wt-page-toolbar__end">
+      <ng-content select="[end]"></ng-content>
+    </ion-buttons>
+  </ion-toolbar>
+</div>

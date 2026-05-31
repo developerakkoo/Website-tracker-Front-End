@@ -1,21 +1,14 @@
-<ion-header>
-  <ion-toolbar class="analytics-toolbar">
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-      <div class="analytics-title-block">
-        <span class="analytics-title">Analytics</span>
-        <span class="analytics-subtitle">{{ projectName }}</span>
-      </div>
-    </ion-buttons>
-    <ion-buttons slot="end">
-      <ion-segment [value]="selectedDaysKey" (ionChange)="onDaysChange($any($event).detail.value)">
-        <ion-segment-button value="7D"><ion-label>7D</ion-label></ion-segment-button>
-        <ion-segment-button value="30D"><ion-label>30D</ion-label></ion-segment-button>
-        <ion-segment-button value="90D"><ion-label>90D</ion-label></ion-segment-button>
-      </ion-segment>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-page-toolbar [subtitle]="projectName">
+  <ion-segment
+    end
+    class="analytics-days-segment"
+    [value]="selectedDaysKey"
+    (ionChange)="onDaysChange($any($event).detail.value)">
+    <ion-segment-button value="7D"><ion-label>7D</ion-label></ion-segment-button>
+    <ion-segment-button value="30D"><ion-label>30D</ion-label></ion-segment-button>
+    <ion-segment-button value="90D"><ion-label>90D</ion-label></ion-segment-button>
+  </ion-segment>
+</app-page-toolbar>
 
 <ion-content [fullscreen]="true" class="analytics-content">
   <div class="wt-page-padding analytics-page">

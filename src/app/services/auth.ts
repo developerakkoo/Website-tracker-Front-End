@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { MenuController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, firstValueFrom, tap } from 'rxjs';
-import { environment } from 'src/environments/environment.prod';
+import { environment } from 'src/environments/environment';
 import { Data } from './data';
 import { ProjectContextService } from './project-context.service';
 

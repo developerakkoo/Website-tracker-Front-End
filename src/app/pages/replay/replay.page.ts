@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import rrwebPlayer from 'rrweb-player';
 import {
   SessionService,
   SessionInfo,
@@ -23,6 +25,7 @@ import {
   pagesLabel,
   pagesVisitedCount,
 } from 'src/app/utils/session-display';
+import { injectBaseHref } from 'src/app/utils/snapshot-replay';
 
 interface RippleEntry {
   element: HTMLElement;
@@ -48,7 +51,12 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   timelineSegments: { pageIndex: number; widthPct: number; url: string }[] = [];
 
   error = '';
+  replayAssetWarning = '';
   loading = true;
+  useRrweb = false;
+  skipInactive = true;
+  sidebarEvents: ReplayEvent[] = [];
+  private rrwebPlayerInstance: any = null;
   private snapshotInjected = false;
 
   isPlaying = false;
@@ -229,6 +237,10 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngOnDestroy(): void {
+    if (this.rrwebPlayerInstance) {
+      this.rrwebPlayerInstance.$destroy();
+      this.rrwebPlayerInstance = null;
+    }
     if (this.engine) {
       this.engine.destroy();
       this.engine = null;
@@ -249,13 +261,61 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    if (!this.session || this.loading || this.snapshotInjected || !this.replayFrame?.nativeElement) return;
+    if (this.useRrweb || !this.session || this.loading || this.snapshotInjected || !this.replayFrame?.nativeElement) return;
     if (this.events.length === 0 && !this.hasSnapshot) return;
     this.snapshotInjected = true;
     this.injectSnapshot();
   }
 
   private loadSession(): void {
+    this.sessionService.getSession(this.sessionId).subscribe({
+      next: (s) => {
+        this.session = s;
+        void this.resolveReplayMode(s);
+      },
+      error: () => {
+        this.loading = false;
+        this.error = 'Failed to load recording';
+      },
+    });
+  }
+
+  private sessionHasStoredSnapshot(s: SessionInfo): boolean {
+    if (typeof s.snapshot === 'string' && s.snapshot.trim().length > 0) return true;
+    if (Array.isArray(s.pages)) {
+      return s.pages.some((p) => typeof p.snapshot === 'string' && p.snapshot.trim().length > 0);
+    }
+    return false;
+  }
+
+  private shouldTryRrweb(s: SessionInfo): boolean {
+    return !!(s.hasRrweb || (s.rrwebChunkCount != null && s.rrwebChunkCount > 0));
+  }
+
+  private async resolveReplayMode(s: SessionInfo): Promise<void> {
+    if (this.shouldTryRrweb(s)) {
+      const loaded = await this.loadRrwebPlayer(false);
+      if (loaded) return;
+      if (this.sessionHasStoredSnapshot(s)) {
+        this.useRrweb = false;
+        this.loadSnapshotSession();
+        return;
+      }
+    }
+
+    if (this.sessionHasStoredSnapshot(s)) {
+      this.useRrweb = false;
+      this.loadSnapshotSession();
+      return;
+    }
+
+    this.loading = false;
+    this.error =
+      'Recording incomplete — no visual capture was stored for this session. ' +
+      'Ensure the latest tracker script is installed and reload the tracked page to record again.';
+  }
+
+  private loadSnapshotSession(): void {
     this.sessionService.getSessionFull(this.sessionId).subscribe({
       next: (full) => this.applyFullSession(full),
       error: (err: HttpErrorResponse) => {
@@ -267,6 +327,118 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
         this.loadLegacySession();
       },
     });
+  }
+
+  private flattenRrwebEvents(chunks: { chunkIndex: number; events: unknown[] }[]): { timestamp: number; type?: number }[] {
+    const sorted = [...chunks].sort((a, b) => a.chunkIndex - b.chunkIndex);
+    const merged: { timestamp: number; type?: number }[] = [];
+    const seen = new Set<string>();
+    sorted.forEach((chunk) => {
+      (chunk.events as { timestamp: number; type?: number }[]).forEach((ev) => {
+        const key = `${ev.timestamp}:${ev.type ?? ''}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        merged.push(ev);
+      });
+    });
+    merged.sort((a, b) => a.timestamp - b.timestamp);
+    return merged;
+  }
+
+  private async loadRrwebPlayer(markFailure = true): Promise<boolean> {
+    try {
+      const response = await firstValueFrom(this.sessionService.getRrwebChunks(this.sessionId));
+      const allEvents = this.flattenRrwebEvents(response.chunks);
+
+      if (allEvents.length === 0) {
+        if (markFailure) {
+          this.error = 'No rrweb events found';
+          this.loading = false;
+        }
+        return false;
+      }
+
+      this.useRrweb = true;
+      await this.loadSidebarEvents();
+      this.loading = false;
+      this.cdr.detectChanges();
+
+      await new Promise((r) => setTimeout(r, 100));
+      const container = document.getElementById('rrweb-player-container');
+      if (!container) return false;
+
+      const vp = this.session?.viewport;
+      const playerHeight = vp?.height ? Math.min(800, Math.max(400, vp.height)) : 600;
+
+      container.innerHTML = '';
+      this.rrwebPlayerInstance = new rrwebPlayer({
+        target: container,
+        props: {
+          events: allEvents,
+          width: container.clientWidth || vp?.width || 900,
+          height: playerHeight,
+          autoPlay: false,
+          skipInactive: this.skipInactive,
+          speed: this.speed,
+          showController: true,
+        } as any,
+      });
+      return true;
+    } catch {
+      if (markFailure) {
+        this.loading = false;
+        this.error = 'Failed to load rrweb recording';
+      }
+      this.useRrweb = false;
+      return false;
+    }
+  }
+
+  private async loadSidebarEvents(): Promise<void> {
+    try {
+      const events = await firstValueFrom(this.sessionService.getSessionEvents(this.sessionId));
+      this.sidebarEvents = events
+        .filter((e) =>
+          ['rage_click', 'dead_click', 'console', 'network', 'navigation'].includes(e.type)
+        )
+        .sort((a, b) => a.timestamp - b.timestamp);
+    } catch {
+      this.sidebarEvents = [];
+    }
+  }
+
+  seekToEvent(ev: ReplayEvent): void {
+    if (!this.rrwebPlayerInstance) return;
+    this.rrwebPlayerInstance.goto(ev.timestamp);
+  }
+
+  getEventLabel(ev: ReplayEvent): string {
+    switch (ev.type) {
+      case 'rage_click':
+        return `Rage click on ${ev.data?.selector || 'element'}`;
+      case 'dead_click':
+        return `Dead click on ${ev.data?.selector || 'element'}`;
+      case 'console':
+        return `[${(ev.data as { level?: string })?.level}] ${String((ev.data as { message?: string })?.message || '').slice(0, 60)}`;
+      case 'network':
+        return `${(ev.data as { method?: string })?.method} ${String((ev.data as { url?: string })?.url || '').split('/').pop()} ${(ev.data as { status?: number })?.status}`;
+      case 'navigation':
+        return `→ ${ev.data?.url || ''}`;
+      default:
+        return ev.type;
+    }
+  }
+
+  formatEventTime(ts: number): string {
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { minute: '2-digit', second: '2-digit' });
+  }
+
+  toggleSkipInactive(skip: boolean): void {
+    this.skipInactive = skip;
+    if (this.rrwebPlayerInstance) {
+      this.rrwebPlayerInstance.$set({ skipInactive: skip });
+    }
   }
 
   private applyFullSession(full: FullSessionResponse): void {
@@ -403,14 +575,25 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
     const doc = iframe.contentDocument;
     if (!doc) return;
     let html = '';
+    let pageUrl = this.session?.url || '';
     if (this.multiPageMode) {
-      const snap = this.replayPages[this.currentReplayPageIndex]?.snapshot;
-      html = typeof snap === 'string' && snap.trim() ? this.stripScripts(snap) : '<html><body><p>No snapshot</p></body></html>';
+      const page = this.replayPages[this.currentReplayPageIndex];
+      const snap = page?.snapshot;
+      pageUrl = page?.url || pageUrl;
+      html = typeof snap === 'string' && snap.trim() ? this.stripScripts(snap) : '';
     } else if (this.hasSnapshot) {
       html = this.stripScripts(this.session!.snapshot!);
-    } else {
-      html = '<html><body><p>No snapshot</p></body></html>';
+      pageUrl = this.session?.url || pageUrl;
     }
+
+    this.replayAssetWarning = '';
+    if (!html.trim()) {
+      html = '<html><body><p>No snapshot</p></body></html>';
+      this.replayAssetWarning = 'This page has no saved snapshot. Styles and layout may be missing.';
+    } else if (pageUrl) {
+      html = injectBaseHref(html, pageUrl);
+    }
+
     doc.open();
     doc.write(html);
     doc.close();
@@ -549,6 +732,10 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
 
   setSpeed(s: number): void {
     this.speed = s;
+    if (this.rrwebPlayerInstance) {
+      this.rrwebPlayerInstance.$set({ speed: s });
+      return;
+    }
     if (this.engine) this.engine.setSpeed(s);
   }
 

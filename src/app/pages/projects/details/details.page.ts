@@ -178,9 +178,9 @@ export class DetailsPage implements OnInit {
   loadSessions() {
     if (!this.projectId) return;
     this.sessionsLoading = true;
-    this.sessionService.getProjectSessions(this.projectId).subscribe({
-      next: (sessions) => {
-        this.sessions = sessions;
+    this.sessionService.listProjectSessions(this.projectId, { page: 1, limit: 5, sort: 'startedAt', order: 'desc' }).subscribe({
+      next: (res) => {
+        this.sessions = res.items ?? [];
         this.sessionsLoading = false;
       },
       error: () => {

@@ -1,28 +1,12 @@
-.analytics-toolbar {
-  --border-width: 0 0 1px 0;
-  --border-color: var(--ion-border-color);
-}
-
-.analytics-title-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-inline-start: 4px;
-}
-
-.analytics-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ion-text-color);
-}
-
-.analytics-subtitle {
-  font-size: 0.75rem;
-  color: var(--ion-color-medium);
+.analytics-days-segment {
+  --background: var(--wt-card);
+  border: 1px solid var(--wt-border);
+  border-radius: var(--wt-radius-control);
+  min-height: 36px;
 }
 
 .analytics-content {
-  --background: var(--ion-background-color);
+  --background: var(--wt-bg);
 }
 
 .analytics-page {

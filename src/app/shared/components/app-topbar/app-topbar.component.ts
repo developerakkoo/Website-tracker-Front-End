@@ -16,7 +16,6 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
   selectedProjectId = '';
   searchOpen = false;
   searchQuery = '';
-  mobileProjectOpen = false;
   accountPopoverOpen = false;
   currentUser: AuthUser | null = null;
 
@@ -29,6 +28,11 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
     private auth: Auth,
     private alertCtrl: AlertController
   ) {}
+
+  get showNewProjectBtn(): boolean {
+    const u = this.router.url.split('?')[0];
+    return u === '/projects';
+  }
 
   ngOnInit(): void {
     void this.projectContext.initFromStorage();
@@ -63,12 +67,15 @@ export class AppTopbarComponent implements OnInit, OnDestroy {
     await this.menuCtrl.open();
   }
 
+  goToNewProject(): void {
+    void this.router.navigate(['/projects/add']);
+  }
+
   async onProjectChange(projectId: string): Promise<void> {
     if (!projectId) return;
     const ok = await this.projectContext.setActiveProjectById(projectId);
     if (!ok) return;
 
-    this.mobileProjectOpen = false;
     const url = this.router.url.split('?')[0];
 
     if (url.startsWith('/heatmaps/') && url !== '/heatmaps') {
