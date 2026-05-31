@@ -5,7 +5,7 @@
       <p class="auth-brand__tagline">Session replay, heatmaps, and product analytics in one place.</p>
     </div>
     <div class="auth-card-wrap">
-      <ion-card class="auth-card">
+      <ion-card class="auth-card" *ngIf="!showForgotPassword">
         <ion-card-header>
           <ion-card-title>Sign in</ion-card-title>
           <ion-card-subtitle>Welcome back</ion-card-subtitle>
@@ -20,11 +20,46 @@
               <ion-label position="stacked">Password <ion-text color="danger">*</ion-text></ion-label>
               <ion-input formControlName="password" type="password" autocomplete="current-password"></ion-input>
             </ion-item>
+            <p class="auth-forgot">
+              <button type="button" class="auth-link-btn" (click)="showResetForm()">Forgot password?</button>
+            </p>
             <ion-button expand="block" type="submit" [disabled]="_form.invalid" class="wt-btn-follow">
               Log in
             </ion-button>
             <p class="auth-switch">
               <a routerLink="/register">Create an account</a>
+            </p>
+          </form>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="auth-card" *ngIf="showForgotPassword">
+        <ion-card-header>
+          <ion-card-title>Reset password</ion-card-title>
+          <ion-card-subtitle>Enter your email and choose a new password</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <form [formGroup]="resetForm" (ngSubmit)="onResetPassword()">
+            <ion-item lines="full" class="auth-field">
+              <ion-label position="stacked">Email <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="email" type="email" autocomplete="email" inputmode="email"></ion-input>
+            </ion-item>
+            <ion-item lines="full" class="auth-field">
+              <ion-label position="stacked">New password <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="password" type="password" autocomplete="new-password"></ion-input>
+            </ion-item>
+            <ion-item lines="full" class="auth-field">
+              <ion-label position="stacked">Confirm password <ion-text color="danger">*</ion-text></ion-label>
+              <ion-input formControlName="confirmPassword" type="password" autocomplete="new-password"></ion-input>
+            </ion-item>
+            <p class="auth-field-error" *ngIf="resetForm.errors?.['passwordMismatch'] && resetForm.get('confirmPassword')?.touched">
+              Passwords do not match.
+            </p>
+            <ion-button expand="block" type="submit" [disabled]="resetForm.invalid" class="wt-btn-follow">
+              Update password
+            </ion-button>
+            <p class="auth-switch">
+              <button type="button" class="auth-link-btn" (click)="showLoginForm()">Back to sign in</button>
             </p>
           </form>
         </ion-card-content>

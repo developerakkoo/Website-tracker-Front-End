@@ -26,6 +26,10 @@ import {
   pagesVisitedCount,
 } from 'src/app/utils/session-display';
 import { injectBaseHref } from 'src/app/utils/snapshot-replay';
+import {
+  flattenRrwebChunks,
+  isReplayableRrwebEvents,
+} from 'src/app/utils/rrweb-events';
 
 interface RippleEntry {
   element: HTMLElement;
@@ -52,6 +56,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
 
   error = '';
   replayAssetWarning = '';
+  rrwebFallbackWarning = '';
   loading = true;
   useRrweb = false;
   skipInactive = true;
@@ -297,6 +302,8 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
       const loaded = await this.loadRrwebPlayer(false);
       if (loaded) return;
       if (this.sessionHasStoredSnapshot(s)) {
+        this.rrwebFallbackWarning =
+          'Visual replay data was incomplete; showing saved page snapshot instead.';
         this.useRrweb = false;
         this.loadSnapshotSession();
         return;
@@ -329,32 +336,20 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  private flattenRrwebEvents(chunks: { chunkIndex: number; events: unknown[] }[]): { timestamp: number; type?: number }[] {
-    const sorted = [...chunks].sort((a, b) => a.chunkIndex - b.chunkIndex);
-    const merged: { timestamp: number; type?: number }[] = [];
-    const seen = new Set<string>();
-    sorted.forEach((chunk) => {
-      (chunk.events as { timestamp: number; type?: number }[]).forEach((ev) => {
-        const key = `${ev.timestamp}:${ev.type ?? ''}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        merged.push(ev);
-      });
-    });
-    merged.sort((a, b) => a.timestamp - b.timestamp);
-    return merged;
-  }
-
   private async loadRrwebPlayer(markFailure = true): Promise<boolean> {
     try {
       const response = await firstValueFrom(this.sessionService.getRrwebChunks(this.sessionId));
-      const allEvents = this.flattenRrwebEvents(response.chunks);
+      const allEvents = flattenRrwebChunks(response.chunks);
 
       if (allEvents.length === 0) {
         if (markFailure) {
           this.error = 'No rrweb events found';
           this.loading = false;
         }
+        return false;
+      }
+
+      if (!isReplayableRrwebEvents(allEvents)) {
         return false;
       }
 

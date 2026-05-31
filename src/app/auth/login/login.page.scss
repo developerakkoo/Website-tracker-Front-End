@@ -97,3 +97,26 @@ ion-card.auth-card {
     font-weight: 500;
   }
 }
+
+.auth-forgot {
+  text-align: right;
+  margin: 0 0 var(--wt-space-8);
+  font-size: 0.875rem;
+}
+
+.auth-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--wt-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-field-error {
+  margin: 0 0 var(--wt-space-12);
+  font-size: 0.8125rem;
+  color: var(--ion-color-danger, #eb445a);
+}

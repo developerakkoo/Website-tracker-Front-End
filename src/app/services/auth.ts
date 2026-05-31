@@ -75,6 +75,13 @@ export class Auth {
       .pipe(tap((res) => void this.applySession(res)));
   }
 
+  resetPassword(body: { email: string; password: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${environment.API_URL}/auth/reset-password`,
+      body
+    );
+  }
+
   refreshSession(): Promise<AuthUser> {
     return firstValueFrom(
       this.http.get<AuthUser>(`${environment.API_URL}/auth/me`)
