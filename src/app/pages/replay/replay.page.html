@@ -161,8 +161,9 @@
           </div>
         </div>
 
-        <div *ngIf="replayAssetWarning || rrwebFallbackWarning" class="replay-asset-warning ion-padding-horizontal">
-          <ion-text color="warning">{{ rrwebFallbackWarning || replayAssetWarning }}</ion-text>
+        <div *ngIf="replayAssetWarning || rrwebFallbackWarning || rrwebSegmentNote" class="replay-asset-warning ion-padding-horizontal">
+          <ion-text color="warning" *ngIf="rrwebFallbackWarning || replayAssetWarning">{{ rrwebFallbackWarning || replayAssetWarning }}</ion-text>
+          <ion-text color="medium" *ngIf="rrwebSegmentNote">{{ rrwebSegmentNote }}</ion-text>
         </div>
         <div *ngIf="!replayAssetWarning && !rrwebFallbackWarning && !hasSnapshot" class="ion-padding-vertical no-snapshot-message">
           <ion-text color="medium">Page preview unavailable; playback still shows movement.</ion-text>

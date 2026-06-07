@@ -27,8 +27,10 @@ import {
 } from 'src/app/utils/session-display';
 import { injectBaseHref } from 'src/app/utils/snapshot-replay';
 import {
-  flattenRrwebChunks,
-  isReplayableRrwebEvents,
+  pickLatestReplayableSegment,
+  validateRrwebReplay,
+  replayFailureMessage,
+  RrwebReplayFailureReason,
 } from 'src/app/utils/rrweb-events';
 
 interface RippleEntry {
@@ -57,6 +59,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
   error = '';
   replayAssetWarning = '';
   rrwebFallbackWarning = '';
+  rrwebSegmentNote = '';
   loading = true;
   useRrweb = false;
   skipInactive = true;
@@ -302,8 +305,7 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
       const loaded = await this.loadRrwebPlayer(false);
       if (loaded) return;
       if (this.sessionHasStoredSnapshot(s)) {
-        this.rrwebFallbackWarning =
-          'Visual replay data was incomplete; showing saved page snapshot instead.';
+        this.rrwebFallbackWarning = replayFailureMessage(this.lastRrwebFailureReason);
         this.useRrweb = false;
         this.loadSnapshotSession();
         return;
@@ -336,22 +338,21 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  private lastRrwebFailureReason?: RrwebReplayFailureReason;
+
   private async loadRrwebPlayer(markFailure = true): Promise<boolean> {
     try {
       const response = await firstValueFrom(this.sessionService.getRrwebChunks(this.sessionId));
-      const allEvents = flattenRrwebChunks(response.chunks);
+      const validation = validateRrwebReplay(response.chunks);
 
-      if (allEvents.length === 0) {
-        if (markFailure) {
-          this.error = 'No rrweb events found';
-          this.loading = false;
-        }
+      if (!validation.replayable) {
+        this.lastRrwebFailureReason = validation.reason;
         return false;
       }
 
-      if (!isReplayableRrwebEvents(allEvents)) {
-        return false;
-      }
+      const picked = pickLatestReplayableSegment(response.chunks);
+      const allEvents = picked.events;
+      this.rrwebSegmentNote = picked.segmentNote || validation.segmentNote || '';
 
       this.useRrweb = true;
       await this.loadSidebarEvents();
@@ -380,9 +381,10 @@ export class ReplayPage implements OnInit, OnDestroy, AfterViewChecked {
       });
       return true;
     } catch {
+      this.lastRrwebFailureReason = 'player_error';
       if (markFailure) {
         this.loading = false;
-        this.error = 'Failed to load rrweb recording';
+        this.error = replayFailureMessage('player_error');
       }
       this.useRrweb = false;
       return false;

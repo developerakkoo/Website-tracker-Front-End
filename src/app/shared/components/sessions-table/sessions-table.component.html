@@ -56,7 +56,10 @@
           <ion-badge color="warning" *ngIf="s.errorCount && s.errorCount > 0">{{ s.errorCount }}</ion-badge>
         </td>
         <td class="sessions-table__hide-sm">
-          <ion-icon *ngIf="s.hasRrweb" name="ellipse" color="primary" aria-label="rrweb recording"></ion-icon>
+          <ion-icon *ngIf="s.hasRrweb && s.rrwebStatus === 'complete'" name="videocam" color="success" title="Visual replay ready"></ion-icon>
+          <ion-icon *ngIf="s.hasRrweb && s.rrwebStatus === 'partial'" name="videocam-outline" color="warning" title="Partial visual recording"></ion-icon>
+          <ion-icon *ngIf="s.hasRrweb && (!s.rrwebStatus || s.rrwebStatus === 'none')" name="ellipse" color="primary" title="Recording data stored"></ion-icon>
+          <ion-icon *ngIf="!s.hasRrweb && s.hasSnapshot" name="image-outline" color="medium" title="Snapshot only"></ion-icon>
         </td>
         <td class="sessions-table__hide-sm sessions-table__device">
           <ion-icon [name]="deviceIcon(s.deviceType)" aria-hidden="true"></ion-icon>

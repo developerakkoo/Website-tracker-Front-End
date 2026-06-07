@@ -120,6 +120,7 @@ export interface SessionsListParams {
 
 export interface RrwebChunk {
   chunkIndex: number;
+  segmentId?: string | null;
   isCheckout: boolean;
   recordedAt: number;
   events: unknown[];
